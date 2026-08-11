@@ -108,10 +108,23 @@ Citizen / Authorized Evidence
 
 - Evidence review queue
 - Report verification
-- Duplicate handling (500m radius duplicate detection)
+- Duplicate handling (Latitude/longitude bounding-box proximity detection — ~0.005° bounding box approximation)
 - Priority management (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`)
 - Worker assignment
 - Moderation notes
+
+### Feature Implementation Classification
+
+| Feature | Audit Classification | Implementation Detail |
+| :--- | :---: | :--- |
+| **Environmental Reporting** | **IMPLEMENTED** ✅ | Full-stack REST API, Leaflet geotagging, waste categories, 8-stage state machine. |
+| **Proximity Duplicate Detection** | **IMPLEMENTED** ✅ | Real MySQL query (`ABS(latitude - :lat) <= 0.005`) executing via `ReportRepository.findNearbyOpenReports`. |
+| **Environmental Hotspot Intelligence** | **IMPLEMENTED** ✅ | Real backend SQL aggregation queries (`countByStatus`, category breakdown, average resolution time) on Leaflet map. |
+| **5-Role RBAC & JWT Security** | **IMPLEMENTED** ✅ | Spring Security filter chain with stateless JWT validation, BCrypt password hashing, and role guards. |
+| **SHA-256 Evidence Hashing** | **IMPLEMENTED** ✅ | SHA-256 cryptographic digest calculated on upload for evidence integrity verification. |
+| **Fine-Linked Citizen Rewards** | **IMPLEMENTED** ✅ | 10% auto-calculated fine reward (max ₹500 cap) with duplicate claim protection. |
+| **Smart Category Suggestion** | **EXPERIMENTAL / PROTOTYPE** 💡 | UI-assisted category suggestion interface designed for pluggable ML inference integration. (Currently operates as a prototype interface with user override). |
+| **Government Verification & Challans** | **SIMULATED** 🎭 | Handled via `MockGovernmentIntegrationProvider` with explicit `DEMO / SIMULATED` UI badges. Zero raw Aadhaar or biometrics stored. |
 
 ### Field Worker
 
