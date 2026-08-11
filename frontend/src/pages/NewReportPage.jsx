@@ -202,6 +202,12 @@ const NewReportPage = () => {
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
+                {aiPrediction && (
+                  <div className="mt-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800 flex items-center justify-between">
+                    <span className="font-semibold">Smart Category Suggestion (Prototype): <strong>{aiPrediction.categoryName}</strong></span>
+                    <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-mono">User Override Available</span>
+                  </div>
+                )}
               </div>
 
               <div>
