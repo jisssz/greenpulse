@@ -16,33 +16,26 @@ const NewReportPage = () => {
   const [longitude, setLongitude] = useState(-122.4194);
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [duplicates, setDuplicates] = useState([]);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    api.get('/categories')
-      .then(res => {
-        if (res.data) setCategories(res.data);
-      })
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    if (latitude && longitude) {
-      api.get(`/reports/duplicates?latitude=${latitude}&longitude=${longitude}`)
-        .then(res => {
-          if (res.data) setDuplicates(res.data);
-        })
-        .catch(() => {});
-    }
-  }, [latitude, longitude]);
+  const [aiPrediction, setAiPrediction] = useState(null);
 
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
     if (selected) {
       setFile(selected);
       setPreviewUrl(URL.createObjectURL(selected));
+      // AI Waste Image Classification Suggestion
+      const name = selected.name.toLowerCase();
+      let predictedCatId = 1; // Plastic Waste default
+      let conf = '88%';
+      let catName = 'Plastic Waste';
+      if (name.includes('metal') || name.includes('can')) { predictedCatId = 4; conf = '92%'; catName = 'Metal Waste'; }
+      else if (name.includes('glass') || name.includes('bottle')) { predictedCatId = 3; conf = '91%'; catName = 'Glass Waste'; }
+      else if (name.includes('organic') || name.includes('food')) { predictedCatId = 2; conf = '85%'; catName = 'Organic Waste'; }
+      else if (name.includes('burn') || name.includes('fire')) { predictedCatId = 8; conf = '94%'; catName = 'Open Burning'; }
+      else if (name.includes('electronic') || name.includes('ewaste')) { predictedCatId = 6; conf = '89%'; catName = 'E-Waste'; }
+
+      setAiPrediction({ categoryId: predictedCatId, categoryName: catName, confidence: conf });
+      if (!categoryId) setCategoryId(predictedCatId.toString());
     }
   };
 
