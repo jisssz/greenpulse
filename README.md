@@ -4,6 +4,16 @@
 
 **Report. Verify. Resolve. Improve.**
 
+---
+
+## 🔗 Live Links
+
+- **GitHub Repository**: [https://github.com/jisssz/greenpulse](https://github.com/jisssz/greenpulse)
+- **Deployed Frontend (Vercel)**: [https://frontend-nine-woad-g8xvq6ys3s.vercel.app](https://frontend-nine-woad-g8xvq6ys3s.vercel.app)
+- **Local API Endpoint**: `http://localhost:8080/api` (Health Check: `http://localhost:8080/api/health`)
+
+---
+
 GreenPulse is a full-stack civic-tech platform designed to connect citizen environmental reporting with evidence verification, operational resolution, authority-controlled enforcement workflows, fine tracking, contributor incentives, and environmental analytics.
 
 ---
