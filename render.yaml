@@ -3,7 +3,7 @@ services:
     name: greenpulse-backend
     env: docker
     dockerfilePath: backend/Dockerfile
-    dockerContext: backend
+    dockerContext: .
     plan: free
     region: singapore
     envVars:
