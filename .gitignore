@@ -1,0 +1,43 @@
+# Environment variables
+.env
+.env.local
+.env.*
+!.env.example
+
+# Local tools & dependencies
+.tools/
+
+# Node / Frontend Build Artifacts
+node_modules/
+dist/
+build/
+.next/
+.cache/
+
+# Java / Maven Build Artifacts
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE & OS Metadata
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs & Temporary Files
+*.log
+*.tmp
+temp/
+tmp/
+
+# Uploaded Files & Local Databases
+uploads/*
+!uploads/.gitkeep
+storage/*
+h2-data/
+*.db

@@ -1,0 +1,247 @@
+{
+	"info": {
+		"_postman_id": "greenpulse-api-collection-v2",
+		"name": "GreenPulse Complete REST API Collection",
+		"description": "Comprehensive Postman API collection for GreenPulse Civic Environmental Reporting Platform covering all 4 roles (Citizen, Moderator, Field Worker, Admin)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080/api"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "1. Auth Module",
+			"item": [
+				{
+					"name": "Citizen Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"citizen@greenpulse.demo\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+					}
+				},
+				{
+					"name": "Moderator Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"moderator@greenpulse.demo\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+					}
+				},
+				{
+					"name": "Field Worker Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"worker@greenpulse.demo\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+					}
+				},
+				{
+					"name": "Get Current User Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Citizen Reporting Module",
+			"item": [
+				{
+					"name": "Submit Environmental Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Overflowing waste bin near public road\",\n  \"description\": \"Public waste bin has been overflowing for several days and waste is accumulating around surrounding area.\",\n  \"categoryId\": 2,\n  \"latitude\": 37.7780,\n  \"longitude\": -122.4180,\n  \"address\": \"750 Central Highway\",\n  \"imageUrl\": \"/uploads/overflowing_bin_test.jpg\"\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/reports", "host": ["{{baseUrl}}"], "path": ["reports"] }
+					}
+				},
+				{
+					"name": "Get My Submitted Reports",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": { "raw": "{{baseUrl}}/reports/my?page=0&size=10", "host": ["{{baseUrl}}"], "path": ["reports", "my"] }
+					}
+				},
+				{
+					"name": "Get Report Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": { "raw": "{{baseUrl}}/reports/1", "host": ["{{baseUrl}}"], "path": ["reports", "1"] }
+					}
+				},
+				{
+					"name": "Check Nearby Duplicates",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": { "raw": "{{baseUrl}}/reports/duplicates?latitude=37.7749&longitude=-122.4194", "host": ["{{baseUrl}}"], "path": ["reports", "duplicates"] }
+					}
+				},
+				{
+					"name": "Confirm Resolution (YES / NO)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"isResolved\": true,\n  \"feedback\": \"Confirmed site is clean and safe!\"\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/reports/4/verify-resolution", "host": ["{{baseUrl}}"], "path": ["reports", "4", "verify-resolution"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Moderator Triage Module",
+			"item": [
+				{
+					"name": "Get Triage Queue Reports",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": { "raw": "{{baseUrl}}/moderator/reports?page=0&size=10", "host": ["{{baseUrl}}"], "path": ["moderator", "reports"] }
+					}
+				},
+				{
+					"name": "Verify Report & Set Priority",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": { "raw": "{{baseUrl}}/moderator/reports/3/verify?priority=HIGH&comment=Verified+toxic+burning", "host": ["{{baseUrl}}"], "path": ["moderator", "reports", "3", "verify"] }
+					}
+				},
+				{
+					"name": "Assign Field Worker",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"workerId\": 3,\n  \"comment\": \"Dispatching Alex Rivera for cleanup\"\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/moderator/reports/3/assign", "host": ["{{baseUrl}}"], "path": ["moderator", "reports", "3", "assign"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Field Worker Tasks Module",
+			"item": [
+				{
+					"name": "Get Assigned Queue",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": { "raw": "{{baseUrl}}/field-worker/assignments", "host": ["{{baseUrl}}"], "path": ["field-worker", "assignments"] }
+					}
+				},
+				{
+					"name": "Mark Work In Progress",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": { "raw": "{{baseUrl}}/field-worker/reports/2/start", "host": ["{{baseUrl}}"], "path": ["field-worker", "reports", "2", "start"] }
+					}
+				},
+				{
+					"name": "Upload Resolution Photo & Resolve",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"resolutionNotes\": \"Emptied bin and cleared sidewalk\",\n  \"afterImageUrl\": \"/uploads/cleared_bin.jpg\"\n}"
+						},
+						"url": { "raw": "{{baseUrl}}/field-worker/reports/2/resolve", "host": ["{{baseUrl}}"], "path": ["field-worker", "reports", "2", "resolve"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Analytics Module",
+			"item": [
+				{
+					"name": "Get Platform KPI Summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": { "raw": "{{baseUrl}}/analytics/summary", "host": ["{{baseUrl}}"], "path": ["analytics", "summary"] }
+					}
+				},
+				{
+					"name": "Get Hotspot Map Locations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": { "raw": "{{baseUrl}}/analytics/hotspots", "host": ["{{baseUrl}}"], "path": ["analytics", "hotspots"] }
+					}
+				}
+			]
+		}
+	]
+}

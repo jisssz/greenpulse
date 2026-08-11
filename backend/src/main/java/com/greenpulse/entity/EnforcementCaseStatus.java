@@ -1,0 +1,17 @@
+package com.greenpulse.entity;
+
+public enum EnforcementCaseStatus {
+    OPEN,
+    UNDER_INVESTIGATION,
+    IDENTITY_PENDING,
+    OFFENDER_IDENTIFIED,
+    VIOLATION_CONFIRMED,
+    FINE_PENDING,
+    FINE_ISSUED,
+    PAYMENT_PENDING,
+    FINE_PAID,
+    REWARD_PENDING,
+    REWARD_PAID,
+    DISMISSED,
+    CLOSED
+}
