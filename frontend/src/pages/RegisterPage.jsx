@@ -38,19 +38,24 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl shadow-xl p-8 space-y-6">
+    <div className="min-h-screen bg-forest-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background glow accent */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+      <div className="max-w-md w-full glass-panel rounded-3xl p-8 space-y-6 border border-emerald-500/20 shadow-glass relative z-10">
         
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 bg-gradient-to-tr from-brand-700 to-brand-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-brand-500/20">
-            <Leaf className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-gradient-to-tr from-emerald-600 to-teal-400 rounded-2xl mx-auto flex items-center justify-center shadow-glow-emerald p-0.5">
+            <div className="w-full h-full bg-forest-950 rounded-[14px] flex items-center justify-center">
+              <Leaf className="w-6 h-6 text-emerald-400" />
+            </div>
           </div>
-          <h2 className="text-2xl font-extrabold text-slate-900">Create Citizen Account</h2>
-          <p className="text-xs text-slate-500">Join the community in keeping our environment clean</p>
+          <h2 className="text-2xl font-extrabold text-white">Create Citizen Account</h2>
+          <p className="text-xs text-slate-400">Join the community in keeping our environment clean</p>
         </div>
 
         {error && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl p-3 flex items-center gap-2">
+          <div className="bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs rounded-xl p-3 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -58,53 +63,53 @@ const RegisterPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Full Name</label>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Full Name</label>
             <div className="relative">
-              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Jane Doe"
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                className="w-full pl-10 pr-4 py-2.5 glass-input rounded-xl text-sm focus:border-emerald-500/60"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Email Address</label>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="jane@example.com"
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                className="w-full pl-10 pr-4 py-2.5 glass-input rounded-xl text-sm focus:border-emerald-500/60"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Phone Number (Optional)</label>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Phone Number (Optional)</label>
             <div className="relative">
-              <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Phone className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+1 555-0192"
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                className="w-full pl-10 pr-4 py-2.5 glass-input rounded-xl text-sm focus:border-emerald-500/60"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Password (min 8 characters)</label>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Password (min 8 characters)</label>
             <div className="relative">
-              <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Key className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
@@ -112,7 +117,7 @@ const RegisterPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                className="w-full pl-10 pr-4 py-2.5 glass-input rounded-xl text-sm focus:border-emerald-500/60"
               />
             </div>
           </div>
@@ -120,15 +125,15 @@ const RegisterPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl shadow-md transition-all"
+            className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-forest-950 font-bold text-sm rounded-xl shadow-glow-emerald transition-all"
           >
             {loading ? 'Creating Account...' : 'Register'}
           </button>
         </form>
 
-        <div className="text-center text-xs text-slate-500">
+        <div className="text-center text-xs text-slate-400 pt-2 border-t border-emerald-500/10">
           Already have an account?{' '}
-          <Link to="/login" className="font-bold text-brand-600 hover:text-brand-700">
+          <Link to="/login" className="font-bold text-emerald-400 hover:underline">
             Sign in
           </Link>
         </div>

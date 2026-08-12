@@ -64,81 +64,82 @@ const FieldWorkerDashboard = () => {
       setAfterImageFile(null);
       fetchAssignments();
     } catch (e) {
-      alert('Resolve error: ' + e.message);
+      alert('Error resolving task: ' + e.message);
     } finally {
       setActionLoading(false);
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 min-h-screen bg-forest-950 text-slate-100">
       
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-            <Wrench className="w-6 h-6 text-amber-600" /> Field Worker Task Queue
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">Accept tasks, execute cleanup, and submit resolution photo evidence.</p>
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-panel border border-amber-500/30 rounded-3xl p-6 shadow-glass">
+        <div className="space-y-1">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+            <Wrench className="w-3.5 h-3.5" /> Municipal Field Crew Portal
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Assigned Field Resolution Tasks</h1>
+          <p className="text-xs text-slate-400">Accept dispatched cleanup tasks, execute site resolution, and upload mandatory AFTER photo evidence.</p>
         </div>
-        <span className="px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold">
-          {assignments.filter(a => a.status === 'ASSIGNED' || a.status === 'IN_PROGRESS').length} Active Assignments
-        </span>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-6 space-y-4">
-        <h2 className="font-bold text-slate-900 text-lg">Assigned Cleanup Tasks</h2>
+      {/* Task List */}
+      <div className="glass-panel border border-emerald-500/20 rounded-3xl p-6 shadow-glass space-y-4">
+        <div className="flex items-center justify-between border-b border-emerald-500/10 pb-4">
+          <h2 className="font-bold text-white text-lg">Active Task Assignments</h2>
+          <span className="text-xs font-bold text-amber-400">{assignments.length} assigned</span>
+        </div>
 
         {loading ? (
-          <div className="py-12 flex justify-center text-slate-400">
+          <div className="py-16 flex justify-center text-amber-400">
             <Loader2 className="w-8 h-8 animate-spin" />
           </div>
         ) : assignments.length === 0 ? (
-          <div className="py-12 text-center text-slate-500 text-xs font-semibold">No assigned tasks found.</div>
+          <div className="py-12 text-center text-slate-400 text-xs font-semibold">No assigned field tasks in your queue.</div>
         ) : (
-          <div className="grid gap-4">
-            {assignments.map((task) => (
-              <div key={task.id} className="border border-slate-200 rounded-2xl p-5 hover:border-brand-500 transition-colors bg-slate-50/50 space-y-3">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-xs text-slate-500">{task.reportNumber}</span>
-                    <PriorityBadge priority={task.priority} />
-                    <StatusBadge status={task.status} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {assignments.map((t) => (
+              <div key={t.id} className="glass-card rounded-2xl p-5 border border-emerald-500/15 space-y-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono font-bold text-amber-400">{t.reportNumber}</span>
+                      <PriorityBadge priority={t.priority} />
+                    </div>
+                    <h3 className="font-bold text-slate-100 text-sm mt-1">{t.title}</h3>
                   </div>
-                  <span className="text-[11px] font-semibold text-brand-700">{task.categoryName}</span>
+                  <StatusBadge status={t.status} />
                 </div>
 
-                <div className="space-y-1">
-                  <h3 className="font-bold text-slate-900 text-base">{task.title}</h3>
-                  <p className="text-xs text-slate-600 line-clamp-2">{task.description}</p>
-                  <p className="text-xs text-slate-500 flex items-center gap-1 pt-1">
-                    <MapPin className="w-3.5 h-3.5 text-brand-600" /> {task.address}
-                  </p>
+                <p className="text-xs text-slate-400 line-clamp-2">{t.description}</p>
+
+                <div className="text-xs font-mono text-emerald-400 flex items-center gap-1">
+                  <MapPin size={14} /> {t.address}
                 </div>
 
-                <div className="flex items-center justify-between border-t border-slate-200/80 pt-3">
-                  <Link to={`/reports/${task.id}`} className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1">
-                    View Details <ArrowRight className="w-3.5 h-3.5" />
+                <div className="pt-3 border-t border-emerald-500/10 flex items-center justify-between gap-2">
+                  <Link to={`/reports/${t.id}`} className="text-xs text-slate-400 hover:text-white font-semibold flex items-center gap-1">
+                    Details <ArrowRight size={14} />
                   </Link>
 
-                  <div className="flex gap-2">
-                    {task.status === 'ASSIGNED' && (
-                      <button
-                        onClick={() => handleStartWork(task.id)}
-                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5"
-                      >
-                        <Play className="w-3.5 h-3.5" /> Start Work
-                      </button>
-                    )}
+                  {t.status === 'ASSIGNED' && (
+                    <button
+                      onClick={() => handleStartWork(t.id)}
+                      className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-forest-950 font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm"
+                    >
+                      <Play size={14} /> Start Work
+                    </button>
+                  )}
 
-                    {(task.status === 'IN_PROGRESS' || task.status === 'ASSIGNED') && (
-                      <button
-                        onClick={() => setSelectedTask(task)}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Submit Evidence & Resolve
-                      </button>
-                    )}
-                  </div>
+                  {t.status === 'IN_PROGRESS' && (
+                    <button
+                      onClick={() => setSelectedTask(t)}
+                      className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-forest-950 font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-glow-emerald"
+                    >
+                      <CheckCircle2 size={14} /> Submit Resolution
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -146,49 +147,53 @@ const FieldWorkerDashboard = () => {
         )}
       </div>
 
-      {/* Resolution Evidence Modal */}
+      {/* Resolution Submission Modal */}
       {selectedTask && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <h3 className="font-extrabold text-lg text-slate-900">
-              Submit Resolution Evidence ({selectedTask.reportNumber})
+        <div className="fixed inset-0 bg-forest-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="glass-panel border border-emerald-500/30 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+            
+            <h3 className="font-extrabold text-lg text-white">
+              Submit Task Resolution ({selectedTask.reportNumber})
             </h3>
 
             <form onSubmit={handleResolveSubmit} className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Resolution Work Notes</label>
+                <label className="text-xs font-bold text-slate-300 block mb-1">Resolution Work Notes</label>
                 <textarea
                   required
                   rows={3}
-                  value={resolutionNotes}
+                  value={resolutionFeedback}
                   onChange={(e) => setResolutionNotes(e.target.value)}
-                  placeholder="Describe cleanup actions taken, waste hauled away, and equipment used..."
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  placeholder="Describe cleanup executed, equipment used, tonnage removed..."
+                  className="w-full p-2.5 glass-input rounded-xl text-xs"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Upload AFTER Photo Evidence</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setAfterImageFile(e.target.files[0])}
-                  className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
-                />
+                <label className="text-xs font-bold text-slate-300 block mb-1">Mandatory AFTER Cleanup Photo Evidence</label>
+                <div className="border-2 border-dashed border-emerald-500/20 rounded-2xl p-4 text-center bg-forest-900/50">
+                  <Upload className="w-6 h-6 text-amber-400 mx-auto mb-1" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setAfterImageFile(e.target.files[0])}
+                    className="text-xs text-slate-400"
+                  />
+                </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-2">
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow"
+                  className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-forest-950 font-bold rounded-xl text-xs shadow-glow-emerald"
                 >
-                  {actionLoading ? 'Uploading & Saving...' : 'Confirm Resolution'}
+                  {actionLoading ? 'Uploading Evidence...' : 'Confirm Resolution'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedTask(null)}
-                  className="px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800"
+                  className="px-4 py-2.5 text-xs font-bold text-slate-400 hover:text-white"
                 >
                   Cancel
                 </button>

@@ -7,6 +7,23 @@ export default {
   theme: {
     extend: {
       colors: {
+        forest: {
+          950: '#060B08',
+          900: '#09120D',
+          850: '#0D1B13',
+          800: '#11231A',
+          700: '#173326',
+          600: '#1E4634',
+        },
+        emerald: {
+          400: '#34D399',
+          500: '#10B981',
+          600: '#059669',
+        },
+        mint: {
+          400: '#2DD4BF',
+          500: '#14B8A6',
+        },
         brand: {
           50: '#f0fdf4',
           100: '#dcfce7',
@@ -20,6 +37,14 @@ export default {
           900: '#14532d',
           950: '#052e16',
         },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      boxShadow: {
+        'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.25)',
+        'glow-mint': '0 0 25px -5px rgba(45, 212, 191, 0.25)',
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
       },
     },
   },

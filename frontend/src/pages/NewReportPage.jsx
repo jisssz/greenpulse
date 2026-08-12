@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MapPicker from '../components/MapPicker';
-import { Upload, AlertCircle, FileText, CheckCircle2, ArrowLeft, Loader2, Info, ShieldAlert, Lock } from 'lucide-react';
+import { Upload, AlertCircle, FileText, CheckCircle2, ArrowLeft, Loader2, Info, ShieldAlert, Lock, Sparkles, Eye } from 'lucide-react';
 import api from '../services/api';
 
 const NewReportPage = () => {
@@ -17,15 +17,36 @@ const NewReportPage = () => {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [aiPrediction, setAiPrediction] = useState(null);
+  const [duplicates, setDuplicates] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    api.get('/categories')
+      .then(res => {
+        if (res.data) setCategories(res.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (latitude && longitude) {
+      api.get(`/reports/nearby?lat=${latitude}&lng=${longitude}&radiusKm=0.5`)
+        .then(res => {
+          if (res.data) setDuplicates(res.data);
+        })
+        .catch(() => {});
+    }
+  }, [latitude, longitude]);
 
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
     if (selected) {
       setFile(selected);
       setPreviewUrl(URL.createObjectURL(selected));
-      // AI Waste Image Classification Suggestion
+      
       const name = selected.name.toLowerCase();
-      let predictedCatId = 1; // Plastic Waste default
+      let predictedCatId = 1;
       let conf = '88%';
       let catName = 'Plastic Waste';
       if (name.includes('metal') || name.includes('can')) { predictedCatId = 4; conf = '92%'; catName = 'Metal Waste'; }
@@ -89,7 +110,6 @@ const NewReportPage = () => {
 
       const res = await api.post('/reports', payload);
       if (res.success && res.data) {
-        // Also register Evidence record for enforcement verification & hashing
         try {
           await api.post('/evidence', {
             reportId: res.data.id,
@@ -113,33 +133,33 @@ const NewReportPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-forest-950 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto space-y-6">
         
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft size={16} /> Back to Dashboard
         </button>
 
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6">
+        <div className="glass-panel rounded-3xl border border-emerald-500/20 shadow-glass p-6 sm:p-8 space-y-6">
           
           {/* Header */}
           <div>
-            <span className="text-xs font-mono font-bold text-brand-700 bg-brand-50 px-2.5 py-1 rounded-md uppercase">
+            <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-md uppercase">
               Community Reporting Form
             </span>
-            <h1 className="text-2xl font-extrabold text-slate-900 mt-2">Report Civic Environmental Issue</h1>
-            <p className="text-xs text-slate-500 mt-1">Submit geotagged evidence for municipal verification and enforcement action.</p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-2">Report Civic Environmental Issue</h1>
+            <p className="text-xs text-slate-400 mt-1">Submit geotagged evidence for municipal verification and enforcement action.</p>
           </div>
 
           {/* Safety Warning UX Banner */}
-          <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-start gap-3 text-xs text-amber-900">
-            <ShieldAlert size={20} className="text-amber-600 shrink-0 mt-0.5" />
+          <div className="bg-amber-500/15 border border-amber-500/30 p-4 rounded-2xl flex items-start gap-3 text-xs text-amber-200">
+            <ShieldAlert size={20} className="text-amber-400 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <strong className="font-extrabold text-amber-950">Citizen Safety & Responsibilities Instructions:</strong>
-              <ul className="list-disc pl-4 space-y-0.5 text-amber-800">
+              <strong className="font-extrabold text-amber-300">Citizen Safety & Responsibilities Instructions:</strong>
+              <ul className="list-disc pl-4 space-y-0.5 text-amber-200/80">
                 <li>Submit only genuine, un-altered evidence.</li>
                 <li>Do NOT confront, follow, or escalate situations with suspected offenders.</li>
                 <li>Do NOT trespass onto private property to capture photos or videos.</li>
@@ -149,7 +169,7 @@ const NewReportPage = () => {
           </div>
 
           {error && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl p-4 flex items-center gap-2">
+            <div className="bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs rounded-xl p-4 flex items-center gap-2">
               <AlertCircle size={18} className="shrink-0" />
               <span>{error}</span>
             </div>
@@ -157,17 +177,17 @@ const NewReportPage = () => {
 
           {/* Duplicate Report Warning */}
           {duplicates.length > 0 && (
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-blue-900">
-                <Info size={16} className="text-blue-600" />
+            <div className="bg-blue-500/15 border border-blue-500/30 p-4 rounded-2xl space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-blue-300">
+                <Info size={16} className="text-blue-400" />
                 <span>Nearby Existing Environmental Issues ({duplicates.length} found)</span>
               </div>
-              <p className="text-[11px] text-blue-700">A similar report already exists within 500 meters of this location:</p>
+              <p className="text-[11px] text-blue-200/80">A similar report already exists within 500 meters of this location:</p>
               <div className="space-y-1">
                 {duplicates.map((d) => (
-                  <div key={d.id} className="bg-white p-2 rounded-lg text-xs font-medium text-slate-800 flex justify-between items-center border border-blue-100">
+                  <div key={d.id} className="bg-forest-900/80 p-2 rounded-lg text-xs font-medium text-slate-200 flex justify-between items-center border border-blue-500/20">
                     <span className="truncate max-w-[300px]">{d.title} ({d.reportNumber})</span>
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-slate-100 rounded text-slate-600">{d.status}</span>
+                    <span className="px-2 py-0.5 text-[10px] font-bold bg-slate-800 rounded text-slate-300">{d.status}</span>
                   </div>
                 ))}
               </div>
@@ -177,25 +197,25 @@ const NewReportPage = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Issue Title</label>
+              <label className="block text-xs font-bold text-slate-300 mb-1">Issue Title</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Severe Illegal Dumping behind City Park"
                 required
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                className="w-full px-4 py-2.5 glass-input rounded-xl text-sm focus:border-emerald-500/60"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Category</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Category</label>
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
                   required
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none bg-white"
+                  className="w-full px-4 py-2.5 glass-input rounded-xl text-sm focus:border-emerald-500/60 bg-forest-950"
                 >
                   <option value="">-- Select Category --</option>
                   {categories.map((c) => (
@@ -203,19 +223,19 @@ const NewReportPage = () => {
                   ))}
                 </select>
                 {aiPrediction && (
-                  <div className="mt-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800 flex items-center justify-between">
-                    <span className="font-semibold">Smart Category Suggestion (Prototype): <strong>{aiPrediction.categoryName}</strong></span>
-                    <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-mono">User Override Available</span>
+                  <div className="mt-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[11px] text-emerald-300 flex items-center justify-between">
+                    <span className="font-semibold flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Smart Category Suggestion: <strong>{aiPrediction.categoryName}</strong></span>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-mono">User Override Available</span>
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Classification Type</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Classification Type</label>
                 <select
                   value={reportType}
                   onChange={(e) => setReportType(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none bg-white font-semibold"
+                  className="w-full px-4 py-2.5 glass-input rounded-xl text-sm focus:border-emerald-500/60 bg-forest-950 font-semibold"
                 >
                   <option value="ENVIRONMENTAL_ISSUE">Standard Environmental Issue</option>
                   <option value="ILLEGAL_DUMPING">Illegal Dumping Violation</option>
@@ -228,47 +248,46 @@ const NewReportPage = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Detailed Description</label>
+              <label className="block text-xs font-bold text-slate-300 mb-1">Detailed Description</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 placeholder="Describe the condition, estimated size, hazard level, and exact location markers..."
                 required
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                className="w-full px-4 py-2.5 glass-input rounded-xl text-sm focus:border-emerald-500/60"
               />
             </div>
 
             {/* Geotagging Map Picker */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Geotag Location Pin</label>
               <MapPicker
                 latitude={latitude}
                 longitude={longitude}
                 onLocationChange={handleLocationChange}
               />
-              <p className="text-[11px] font-mono text-slate-500 mt-1">Address: {address}</p>
+              <p className="text-[11px] font-mono text-emerald-400/80 mt-1">Address: {address}</p>
             </div>
 
             {/* Evidence Image Upload */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Evidence Photo / Media (With Cryptographic Integrity Hash)</label>
-              <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:border-brand-500 transition-colors bg-slate-50">
+              <label className="block text-xs font-bold text-slate-300 mb-1">Evidence Photo / Media (With Cryptographic SHA-256 Integrity Digest)</label>
+              <div className="border-2 border-dashed border-emerald-500/20 rounded-2xl p-4 text-center hover:border-emerald-500/50 transition-colors bg-forest-900/50">
                 {previewUrl ? (
                   <div className="space-y-2">
-                    <img src={previewUrl} alt="Preview" className="max-h-40 mx-auto rounded-xl shadow-md border" />
+                    <img src={previewUrl} alt="Preview" className="max-h-40 mx-auto rounded-xl shadow-md border border-emerald-500/30" />
                     <button
                       type="button"
                       onClick={() => { setFile(null); setPreviewUrl(null); }}
-                      className="text-xs font-bold text-rose-600 hover:underline"
+                      className="text-xs font-bold text-rose-400 hover:underline"
                     >
                       Remove Photo
                     </button>
                   </div>
                 ) : (
                   <label className="cursor-pointer space-y-2 block">
-                    <Upload className="w-8 h-8 text-brand-600 mx-auto" />
-                    <span className="text-xs font-bold text-slate-700 block">Click to upload photo evidence (.jpg, .jpeg, .png, .webp)</span>
+                    <Upload className="w-8 h-8 text-emerald-400 mx-auto" />
+                    <span className="text-xs font-bold text-slate-200 block">Click to upload photo evidence (.jpg, .jpeg, .png, .webp)</span>
                     <span className="text-[10px] text-slate-400 block">SHA-256 hash will be generated automatically upon submission to prove file integrity</span>
                     <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                   </label>
@@ -276,11 +295,11 @@ const NewReportPage = () => {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex justify-end">
+            <div className="pt-4 border-t border-emerald-500/10 flex justify-end">
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-brand-500/20 transition-all flex items-center gap-2 disabled:opacity-50"
+                className="px-7 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-forest-950 font-bold text-sm rounded-xl shadow-glow-emerald transition-all flex items-center gap-2 disabled:opacity-50"
               >
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting Evidence...</> : 'Submit Verified Report'}
               </button>

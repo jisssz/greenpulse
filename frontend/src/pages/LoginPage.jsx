@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Leaf, LogIn, Key, Mail, ShieldAlert, User, Wrench, Shield, AlertCircle } from 'lucide-react';
+import { Leaf, LogIn, Key, Mail, ShieldAlert, User, Wrench, Shield, AlertCircle, Sparkles } from 'lucide-react';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -35,42 +35,47 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl shadow-xl p-8 space-y-6">
+    <div className="min-h-screen bg-forest-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background glow accents */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+      <div className="max-w-md w-full glass-panel rounded-3xl p-8 space-y-6 border border-emerald-500/20 shadow-glass relative z-10">
         
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 bg-gradient-to-tr from-brand-700 to-brand-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-brand-500/20">
-            <Leaf className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-gradient-to-tr from-emerald-600 to-teal-400 rounded-2xl mx-auto flex items-center justify-center shadow-glow-emerald p-0.5">
+            <div className="w-full h-full bg-forest-950 rounded-[14px] flex items-center justify-center">
+              <Leaf className="w-6 h-6 text-emerald-400" />
+            </div>
           </div>
-          <h2 className="text-2xl font-extrabold text-slate-900">Sign in to GreenPulse</h2>
-          <p className="text-xs text-slate-500">Civic Environmental Reporting, Evidence & Enforcement Platform</p>
+          <h2 className="text-2xl font-extrabold text-white">Sign in to GreenPulse</h2>
+          <p className="text-xs text-slate-400">Civic Environmental Reporting, Evidence & Enforcement Platform</p>
         </div>
 
         {/* Demo Quick Fill Cards */}
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block text-center">1-Click Demo Login</span>
+        <div className="glass-card rounded-2xl p-3.5 space-y-2 border border-emerald-500/15">
+          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block text-center">1-Click Quick Demo Login</span>
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <button type="button" onClick={() => fillDemoAccount('citizen@greenpulse.demo')} className="flex items-center gap-1.5 p-2 rounded-lg bg-white hover:bg-brand-50 border border-slate-200 text-slate-700 hover:text-brand-700 font-semibold transition-colors">
-              <User className="w-3.5 h-3.5 text-brand-600" /> Citizen
+            <button type="button" onClick={() => fillDemoAccount('citizen@greenpulse.demo')} className="flex items-center gap-1.5 p-2 rounded-xl bg-forest-900/80 hover:bg-emerald-500/15 border border-emerald-500/20 text-slate-200 hover:text-emerald-300 font-semibold transition-all">
+              <User className="w-3.5 h-3.5 text-emerald-400" /> Citizen
             </button>
-            <button type="button" onClick={() => fillDemoAccount('officer@greenpulse.demo')} className="flex items-center gap-1.5 p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold transition-colors">
-              <Shield className="w-3.5 h-3.5 text-emerald-700" /> Authority
+            <button type="button" onClick={() => fillDemoAccount('officer@greenpulse.demo')} className="flex items-center gap-1.5 p-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold transition-all shadow-glow-emerald">
+              <Shield className="w-3.5 h-3.5 text-emerald-400" /> Authority
             </button>
-            <button type="button" onClick={() => fillDemoAccount('moderator@greenpulse.demo')} className="flex items-center gap-1.5 p-2 rounded-lg bg-white hover:bg-indigo-50 border border-slate-200 text-slate-700 hover:text-indigo-700 font-semibold transition-colors">
-              <ShieldAlert className="w-3.5 h-3.5 text-indigo-600" /> Moderator
+            <button type="button" onClick={() => fillDemoAccount('moderator@greenpulse.demo')} className="flex items-center gap-1.5 p-2 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 text-indigo-300 font-semibold transition-all">
+              <ShieldAlert className="w-3.5 h-3.5 text-indigo-400" /> Moderator
             </button>
-            <button type="button" onClick={() => fillDemoAccount('worker@greenpulse.demo')} className="flex items-center gap-1.5 p-2 rounded-lg bg-white hover:bg-amber-50 border border-slate-200 text-slate-700 hover:text-amber-700 font-semibold transition-colors">
-              <Wrench className="w-3.5 h-3.5 text-amber-600" /> Field Worker
+            <button type="button" onClick={() => fillDemoAccount('worker@greenpulse.demo')} className="flex items-center gap-1.5 p-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 font-semibold transition-all">
+              <Wrench className="w-3.5 h-3.5 text-amber-400" /> Field Worker
             </button>
           </div>
-          <button type="button" onClick={() => fillDemoAccount('admin@greenpulse.demo')} className="w-full text-center text-xs py-1 text-slate-500 hover:text-slate-900 font-medium">
+          <button type="button" onClick={() => fillDemoAccount('admin@greenpulse.demo')} className="w-full text-center text-[11px] py-1 text-slate-400 hover:text-emerald-300 font-medium transition-colors">
             Login as System Admin (admin@greenpulse.demo)
           </button>
         </div>
 
         {error && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl p-3 flex items-center gap-2">
+          <div className="bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs rounded-xl p-3 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
@@ -78,31 +83,31 @@ const LoginPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Email Address</label>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="user@greenpulse.demo"
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                className="w-full pl-10 pr-4 py-2.5 glass-input rounded-xl text-sm focus:border-emerald-500/60"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Password</label>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Password</label>
             <div className="relative">
-              <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Key className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                className="w-full pl-10 pr-4 py-2.5 glass-input rounded-xl text-sm focus:border-emerald-500/60"
               />
             </div>
           </div>
@@ -110,15 +115,15 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-forest-950 font-bold text-sm rounded-xl shadow-glow-emerald transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? 'Authenticating...' : 'Sign In'} <LogIn className="w-4 h-4" />
           </button>
         </form>
 
-        <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-100">
+        <div className="text-center text-xs text-slate-400 pt-2 border-t border-emerald-500/10">
           Don't have an account?{' '}
-          <Link to="/register" className="text-brand-700 font-bold hover:underline">
+          <Link to="/register" className="text-emerald-400 font-bold hover:underline">
             Register as Citizen
           </Link>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Save, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Shield, Save, CheckCircle2, AlertCircle, Settings } from 'lucide-react';
 import api from '../services/api';
 
 export default function AdminRewardPolicyPage() {
@@ -45,7 +45,7 @@ export default function AdminRewardPolicyPage() {
       });
 
       if (res.success) {
-        setMessage({ type: 'success', text: 'Demo Citizen Reward Policy updated successfully!' });
+        setMessage({ type: 'success', text: 'Citizen Reward Policy updated successfully!' });
       }
     } catch (err) {
       setMessage({ type: 'error', text: err.message || 'Policy update failed' });
@@ -55,102 +55,93 @@ export default function AdminRewardPolicyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-forest-950 text-slate-100 py-10 px-4 sm:px-6 lg:px-8 space-y-6">
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex items-center gap-3 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="p-3 bg-emerald-600 text-white rounded-xl shadow-md">
-            <Shield size={24} />
+        <div className="glass-panel border border-purple-500/30 p-6 rounded-3xl space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-semibold">
+            <Settings size={14} /> System Administrator Portal
           </div>
-          <div>
-            <h1 className="text-xl font-extrabold text-slate-900">Configure Demo Citizen Reward Policy</h1>
-            <p className="text-xs text-slate-500">Admin Policy Rules for Environmental Incentive Distribution</p>
-          </div>
-        </div>
-
-        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-xs text-amber-900">
-          <strong>Demo Feature Note:</strong> Policy configuration is a demonstration feature. Real-world implementation requires authorized municipal/government legal policy approval.
+          <h1 className="text-2xl font-extrabold text-white">Citizen Incentive & Reward Policy Settings</h1>
+          <p className="text-xs text-slate-400">Configure global fine share percentages, maximum cap per report, and minimum fine threshold.</p>
         </div>
 
         {message && (
-          <div className={`p-4 rounded-xl text-xs font-semibold flex items-center gap-2 ${
-            message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
-          }`}>
-            {message.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-            {message.text}
+          <div className={`p-4 rounded-2xl text-xs font-bold border flex items-center justify-between ${message.type === 'success' ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300'}`}>
+            <span>{message.text}</span>
+            <button onClick={() => setMessage(null)} className="text-xs underline opacity-80">Dismiss</button>
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <form onSubmit={handleSubmit} className="glass-panel border border-emerald-500/20 rounded-3xl p-6 sm:p-8 space-y-5 shadow-glass">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Policy Title</label>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Policy Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="w-full p-2.5 glass-input rounded-xl text-xs font-bold"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Reward Percentage (%)</label>
+              <label className="text-xs font-bold text-slate-300 block mb-1">Fine Share Percentage (%)</label>
               <input
                 type="number"
                 step="0.1"
+                min="0"
+                max="100"
                 value={rewardPercentage}
                 onChange={(e) => setRewardPercentage(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full p-2.5 glass-input rounded-xl text-xs font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Maximum Reward Cap (₹)</label>
+              <label className="text-xs font-bold text-slate-300 block mb-1">Max Reward Cap per Report (INR ₹)</label>
               <input
                 type="number"
                 value={maximumReward}
                 onChange={(e) => setMaximumReward(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full p-2.5 glass-input rounded-xl text-xs font-mono"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Minimum Fine Trigger (₹)</label>
+            <label className="text-xs font-bold text-slate-300 block mb-1">Min Fine Required for Reward (INR ₹)</label>
             <input
               type="number"
               value={minimumFine}
               onChange={(e) => setMinimumFine(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="w-full p-2.5 glass-input rounded-xl text-xs font-mono"
             />
           </div>
 
-          <div className="flex items-center gap-2 pt-2">
+          <div className="flex items-center gap-3 pt-2">
             <input
               type="checkbox"
               id="enabled"
               checked={enabled}
               onChange={(e) => setEnabled(e.target.checked)}
-              className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+              className="w-4 h-4 rounded text-emerald-500 bg-forest-900 border-emerald-500/30"
             />
-            <label htmlFor="enabled" className="text-xs font-bold text-slate-800">
-              Enable Citizen Reward Incentive System
-            </label>
+            <label htmlFor="enabled" className="text-xs font-bold text-slate-200">Enable Automated Citizen Reward Calculation</label>
           </div>
 
-          <div className="pt-4 border-t flex justify-end">
+          <div className="pt-4 border-t border-emerald-500/10 flex justify-end">
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-700 transition-colors flex items-center gap-2"
+              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-forest-950 font-bold text-xs rounded-xl shadow-glow-emerald transition-all flex items-center gap-2"
             >
-              <Save size={16} /> Save Reward Policy
+              <Save size={16} /> {loading ? 'Saving Policy...' : 'Save Policy Changes'}
             </button>
           </div>
         </form>

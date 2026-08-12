@@ -31,103 +31,94 @@ export default function CitizenRewardsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-forest-950 text-slate-100 py-10 px-4 sm:px-6 lg:px-8 space-y-6">
       <div className="max-w-5xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 md:p-8 rounded-3xl text-white shadow-lg relative overflow-hidden">
+        <div className="glass-panel border border-emerald-500/30 p-6 md:p-8 rounded-3xl text-white shadow-glass relative overflow-hidden">
           <div className="relative z-10 space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-full text-emerald-300 text-xs font-semibold">
               <Award size={16} /> Citizen Participation Incentive Program
             </div>
-            <h1 className="text-3xl font-black">My Rewards & Environmental Impact</h1>
-            <p className="text-emerald-100 text-xs md:text-sm max-w-xl">
+            <h1 className="text-3xl font-extrabold">My Rewards & Environmental Impact</h1>
+            <p className="text-slate-300 text-xs md:text-sm max-w-xl">
               Thank you for keeping public spaces clean and safe. Your verified reports contribute directly to civic environmental enforcement.
             </p>
           </div>
         </div>
 
         {/* Safety Banner */}
-        <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-start gap-3 text-amber-900 text-xs shadow-sm">
-          <AlertTriangle size={20} className="text-amber-600 shrink-0 mt-0.5" />
+        <div className="bg-amber-500/15 border border-amber-500/30 p-4 rounded-2xl flex items-start gap-3 text-amber-200 text-xs backdrop-blur-md">
+          <AlertTriangle size={20} className="text-amber-400 shrink-0 mt-0.5" />
           <div>
-            <strong className="font-bold">Community Reporting Safety Notice:</strong>
-            <p className="mt-0.5 text-amber-800">
+            <strong className="font-bold text-amber-300">Community Reporting Safety Notice:</strong>
+            <p className="mt-0.5 text-amber-200/80">
               GreenPulse rewards community environmental vigilance. Do not confront suspected offenders, do not follow vehicles, and do not trespass onto private property while collecting evidence.
             </p>
           </div>
         </div>
 
-        {/* Summary Stat Cards */}
+        {/* Summary Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-            <span className="text-xs text-slate-500 font-semibold">Total Rewards Earned</span>
-            <p className="text-2xl font-black text-emerald-600">₹{summary.totalEarned.toLocaleString()}</p>
+          <div className="glass-card p-5 rounded-2xl border border-emerald-500/15 text-center">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Total Earned</span>
+            <span className="text-3xl font-extrabold text-emerald-400 block mt-2">₹{summary.totalEarned || 0}</span>
           </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-            <span className="text-xs text-slate-500 font-semibold">Verified Contributions</span>
-            <p className="text-2xl font-black text-slate-900">{summary.verifiedContributions}</p>
+          <div className="glass-card p-5 rounded-2xl border border-emerald-500/15 text-center">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Verified Reports</span>
+            <span className="text-3xl font-extrabold text-white block mt-2">{summary.verifiedContributions || 0}</span>
           </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-            <span className="text-xs text-slate-500 font-semibold">Pending Rewards</span>
-            <p className="text-2xl font-black text-amber-500">{summary.pendingRewards}</p>
+          <div className="glass-card p-5 rounded-2xl border border-amber-500/15 text-center">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Pending Review</span>
+            <span className="text-3xl font-extrabold text-amber-400 block mt-2">₹{summary.pendingRewards || 0}</span>
           </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-            <span className="text-xs text-slate-500 font-semibold">Paid Rewards</span>
-            <p className="text-2xl font-black text-teal-600">{summary.paidRewards}</p>
+          <div className="glass-card p-5 rounded-2xl border border-teal-500/15 text-center">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Disbursed</span>
+            <span className="text-3xl font-extrabold text-teal-300 block mt-2">₹{summary.paidRewards || 0}</span>
           </div>
         </div>
 
-        {/* Active Reward Policy Info */}
+        {/* Active Policy Rules */}
         {policy && (
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <Shield size={18} className="text-emerald-600" />
-              <span className="font-bold text-slate-800">{policy.name}</span>
-            </div>
-            <div className="text-right text-slate-600">
-              <span className="font-semibold">{policy.rewardPercentage}% of collected fine</span> (Max ₹{policy.maximumReward} cap per case)
+          <div className="glass-card p-5 rounded-2xl border border-emerald-500/20 space-y-2">
+            <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Active Civic Reward Rate Policy</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs pt-1">
+              <div className="bg-forest-900/60 p-2.5 rounded-xl border border-emerald-500/10">
+                <span className="text-slate-400 block text-[10px]">Verified Report Bonus</span>
+                <span className="font-bold text-white text-sm">₹{policy.baseRewardAmount}</span>
+              </div>
+              <div className="bg-forest-900/60 p-2.5 rounded-xl border border-emerald-500/10">
+                <span className="text-slate-400 block text-[10px]">Enforcement Fine Share</span>
+                <span className="font-bold text-emerald-400 text-sm">{policy.percentageShare}% of Fine</span>
+              </div>
+              <div className="bg-forest-900/60 p-2.5 rounded-xl border border-emerald-500/10">
+                <span className="text-slate-400 block text-[10px]">Policy Status</span>
+                <span className="font-bold text-teal-300 text-sm">{policy.active ? 'ACTIVE' : 'INACTIVE'}</span>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Reward History Table */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Reward Transaction History</h2>
-
-          {rewards.length === 0 ? (
-            <div className="text-center py-8 text-slate-400 text-xs">
-              No reward records yet. Submit verified environmental evidence to participate!
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {rewards.map((r) => (
-                <div key={r.id} className="p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-300 transition-colors">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-emerald-700">Case ID #{r.enforcementCaseId}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                        r.paymentStatus === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                      }`}>
-                        {r.paymentStatus}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600">
-                      Calculated {r.rewardPercentage}% reward on verified municipal challan collection
-                    </p>
-                    {r.paymentReference && (
-                      <p className="text-[11px] font-mono text-slate-400">Ref: {r.paymentReference}</p>
-                    )}
-                  </div>
-
-                  <div className="text-right">
-                    <span className="text-lg font-black text-slate-900">₹{r.approvedAmount.toLocaleString()}</span>
-                    <p className="text-[10px] text-slate-400">Status: {r.paymentStatus}</p>
-                  </div>
+        {/* Rewards History Table */}
+        <div className="glass-panel border border-emerald-500/20 rounded-3xl p-6 shadow-glass space-y-4">
+          <h3 className="font-bold text-white text-lg border-b border-emerald-500/10 pb-3">Reward Disbursement History</h3>
+          <div className="space-y-3">
+            {rewards.map((r) => (
+              <div key={r.id} className="glass-card p-4 rounded-2xl border border-emerald-500/15 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-mono text-emerald-400 font-bold">REWARD #{r.id}</span>
+                  <h4 className="font-bold text-white text-sm mt-0.5">{r.reason || 'Verified Environmental Contribution'}</h4>
+                  <span className="text-xs text-slate-400 block mt-0.5">{new Date(r.createdAt).toLocaleDateString()}</span>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="text-right">
+                  <span className="text-lg font-extrabold text-emerald-400 block">₹{r.amount}</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    {r.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
       </div>
