@@ -13,45 +13,51 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const verifyUser = async () => {
-      if (token) {
-        try {
-          const res = await api.get('/auth/me');
-          if (res.success && res.data) {
-            setUser(res.data);
-            localStorage.setItem('greenpulse_user', JSON.stringify(res.data));
-          }
-        } catch (err) {
-          console.error('Session validation failed:', err);
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await api.get('/auth/me');
+        if (res && res.success && res.data) {
+          setUser(res.data);
+          localStorage.setItem('greenpulse_user', JSON.stringify(res.data));
+        }
+      } catch (err) {
+        console.warn('Session verification fallback:', err);
+        const saved = localStorage.getItem('greenpulse_user');
+        if (!saved) {
           logout();
         }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     verifyUser();
   }, [token]);
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    if (res.success && res.data) {
+    if (res && res.success && res.data) {
       setToken(res.data.token);
       setUser(res.data.user);
       localStorage.setItem('greenpulse_token', res.data.token);
       localStorage.setItem('greenpulse_user', JSON.stringify(res.data.user));
       return res.data.user;
     }
-    throw new Error(res.message || 'Login failed');
+    throw new Error(res?.message || 'Login failed');
   };
 
   const register = async (userData) => {
     const res = await api.post('/auth/register', userData);
-    if (res.success && res.data) {
+    if (res && res.success && res.data) {
       setToken(res.data.token);
       setUser(res.data.user);
       localStorage.setItem('greenpulse_token', res.data.token);
       localStorage.setItem('greenpulse_user', JSON.stringify(res.data.user));
       return res.data.user;
     }
-    throw new Error(res.message || 'Registration failed');
+    throw new Error(res?.message || 'Registration failed');
   };
 
   const logout = () => {
