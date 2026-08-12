@@ -20,7 +20,46 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="py-20 text-center text-slate-400 font-bold text-sm">Loading session...</div>;
+    return (
+      <div className="min-h-screen bg-[#F8FAF7] flex items-center justify-center p-6 relative overflow-hidden">
+        {/* Background Ambient Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+        <div className="max-w-md w-full glass-card rounded-3xl p-8 space-y-6 text-center border border-emerald-600/15 shadow-xl relative z-10">
+          <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+            {/* Spinning Leaf Spinner */}
+            <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20 border-t-emerald-600 animate-spin"></div>
+            <div className="w-12 h-12 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center shadow-inner">
+              <svg className="w-6 h-6 animate-bounce text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+              Loading <span className="text-emerald-700 font-extrabold">GreenPulse...</span>
+            </h3>
+            <p className="text-xs text-slate-500 font-medium">Connecting to civic environment portal</p>
+          </div>
+
+          {/* Progress Indicator */}
+          <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-600 to-green-400 h-full rounded-full animate-pulse w-3/4"></div>
+          </div>
+
+          {/* Eco Feature Badges */}
+          <div className="grid grid-cols-2 gap-2 pt-2 text-[11px] font-semibold text-slate-600">
+            <div className="p-2 rounded-xl bg-emerald-50/80 border border-emerald-200/50 flex items-center gap-1.5 justify-center">
+              <span>🌱 Clean Environment</span>
+            </div>
+            <div className="p-2 rounded-xl bg-green-50/80 border border-green-200/50 flex items-center gap-1.5 justify-center">
+              <span>♻️ Waste Management</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
@@ -36,7 +75,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 function AppRoutes() {
   return (
-    <div className="min-h-screen bg-forest-950 text-slate-100 font-sans flex flex-col">
+    <div className="min-h-screen bg-[#F8FAF7] text-slate-800 font-sans flex flex-col">
       <Navbar />
       <main className="flex-1">
         <Routes>

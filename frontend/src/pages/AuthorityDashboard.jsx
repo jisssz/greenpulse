@@ -107,44 +107,44 @@ export default function AuthorityDashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 min-h-screen bg-forest-950 text-slate-100">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 min-h-screen bg-[#F8FAF7] text-slate-800">
       
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-panel border border-emerald-500/30 rounded-3xl p-6 shadow-glass">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-card border border-emerald-950/10 rounded-3xl p-6 shadow-sm">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-[#0F7A45] border border-emerald-200 text-xs font-bold">
             <Shield className="w-3.5 h-3.5" /> Enforcement & Compliance Intelligence
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Municipal Authority Portal</h1>
-          <p className="text-xs text-slate-400">Cryptographic evidence hashing, CCTV feed ingestion, vehicle lookup, and legal fine issuance.</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Municipal Authority Portal</h1>
+          <p className="text-xs text-slate-500 font-medium">Cryptographic evidence hashing, CCTV feed ingestion, vehicle lookup, and legal fine issuance.</p>
         </div>
 
         <button
           onClick={() => setIsCctvModalOpen(true)}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-forest-950 font-bold text-xs shadow-glow-emerald transition-all shrink-0"
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#0F7A45] hover:bg-[#166534] text-white font-extrabold text-xs shadow-md transition-all shrink-0"
         >
-          <Camera className="w-4 h-4" /> Ingest CCTV Traffic Snapshot
+          <Camera className="w-4 h-4" /> Ingest CCTV Snapshot
         </button>
       </div>
 
       {actionMessage && (
-        <div className={`p-4 rounded-2xl text-xs font-bold border flex items-center justify-between ${actionMessage.type === 'success' ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300'}`}>
+        <div className={`p-4 rounded-2xl text-xs font-bold border flex items-center justify-between ${actionMessage.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-[#0F7A45]' : 'bg-rose-50 border-rose-200 text-rose-700'}`}>
           <span>{actionMessage.text}</span>
           <button onClick={() => setActionMessage(null)} className="text-xs underline opacity-80">Dismiss</button>
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-emerald-500/10 pb-3 text-xs font-bold">
+      <div className="flex gap-2 border-b border-slate-200 pb-3 text-xs font-bold">
         <button
           onClick={() => setActiveTab('cases')}
-          className={`px-4 py-2.5 rounded-xl transition-all ${activeTab === 'cases' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-glow-emerald' : 'text-slate-400 hover:text-white'}`}
+          className={`px-4 py-2.5 rounded-xl transition-all ${activeTab === 'cases' ? 'bg-[#0F7A45] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'}`}
         >
           Enforcement Cases ({cases.length})
         </button>
         <button
           onClick={() => setActiveTab('evidence')}
-          className={`px-4 py-2.5 rounded-xl transition-all ${activeTab === 'evidence' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-glow-emerald' : 'text-slate-400 hover:text-white'}`}
+          className={`px-4 py-2.5 rounded-xl transition-all ${activeTab === 'evidence' ? 'bg-[#0F7A45] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'}`}
         >
           Verified Evidence Stream ({evidenceList.length})
         </button>
@@ -153,21 +153,21 @@ export default function AuthorityDashboard() {
       {activeTab === 'cases' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Cases List */}
-          <div className="glass-panel border border-emerald-500/20 rounded-3xl p-5 shadow-glass space-y-3">
-            <h3 className="font-bold text-white text-sm border-b border-emerald-500/10 pb-3">Active Case Roster</h3>
+          <div className="glass-card border border-emerald-950/10 rounded-3xl p-5 shadow-sm space-y-3">
+            <h3 className="font-extrabold text-slate-900 text-sm border-b border-slate-100 pb-3">Active Case Roster</h3>
             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
               {cases.map((c) => (
                 <div
                   key={c.id}
                   onClick={() => setSelectedCase(c)}
-                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${selectedCase?.id === c.id ? 'bg-emerald-500/15 border-emerald-500/40 text-white' : 'glass-card border-emerald-500/10 text-slate-300 hover:border-emerald-500/30'}`}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${selectedCase?.id === c.id ? 'bg-emerald-50 border-[#0F7A45] text-[#0F7A45] font-bold' : 'bg-white border-slate-200 text-slate-700 hover:border-emerald-300'}`}
                 >
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-mono font-bold text-emerald-400">{c.caseNumber}</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-forest-900 border border-emerald-500/20">{c.caseStatus}</span>
+                    <span className="font-mono font-bold text-[#0F7A45]">{c.caseNumber}</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">{c.caseStatus}</span>
                   </div>
-                  <h4 className="font-bold text-xs text-slate-100 mt-1">{c.violationType}</h4>
-                  <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{c.location}</p>
+                  <h4 className="font-bold text-xs text-slate-900 mt-1">{c.violationType}</h4>
+                  <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">{c.location}</p>
                 </div>
               ))}
             </div>
@@ -175,60 +175,54 @@ export default function AuthorityDashboard() {
 
           {/* Case Inspector Detail */}
           {selectedCase && (
-            <div className="lg:col-span-2 glass-panel border border-emerald-500/20 rounded-3xl p-6 shadow-glass space-y-6">
-              <div className="flex justify-between items-start border-b border-emerald-500/10 pb-4">
+            <div className="lg:col-span-2 glass-card border border-emerald-950/10 rounded-3xl p-6 shadow-sm space-y-6">
+              <div className="flex justify-between items-start border-b border-slate-100 pb-4">
                 <div>
-                  <span className="text-[10px] font-mono font-bold text-emerald-400">Case #{selectedCase.caseNumber}</span>
-                  <h2 className="text-xl font-extrabold text-white mt-0.5">{selectedCase.violationType}</h2>
-                  <p className="text-xs text-slate-400">{selectedCase.location}</p>
+                  <span className="text-[10px] font-mono font-bold text-[#0F7A45]">Case #{selectedCase.caseNumber}</span>
+                  <h2 className="text-xl font-extrabold text-slate-900 mt-0.5">{selectedCase.violationType}</h2>
+                  <p className="text-xs text-slate-500">{selectedCase.location}</p>
                 </div>
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-[#0F7A45] border border-emerald-200">
                   {selectedCase.caseStatus}
                 </span>
               </div>
 
-              {/* Enforcement Lifecycle Timeline */}
-              <div className="glass-card p-4 rounded-2xl border border-emerald-500/15">
-                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Enforcement Progression</h4>
-                <EvidenceTimeline currentStatus={selectedCase.caseStatus} />
-              </div>
-
               {/* Status Action Buttons */}
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-emerald-500/10">
-                <button onClick={() => handleAdvanceCaseStatus('UNDER_INVESTIGATION')} className="px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 text-xs font-bold">Investigate</button>
-                <button onClick={() => handleAdvanceCaseStatus('VIOLATOR_IDENTIFIED')} className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold">Mark Identified</button>
-                <button onClick={() => handleAdvanceCaseStatus('CHALLAN_ISSUED')} className="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold">Issue Challan</button>
-                <button onClick={() => handleAdvanceCaseStatus('CLOSED')} className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-bold">Close Case</button>
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                <button onClick={() => handleAdvanceCaseStatus('UNDER_INVESTIGATION')} className="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs">Investigate</button>
+                <button onClick={() => handleAdvanceCaseStatus('VIOLATOR_IDENTIFIED')} className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs">Mark Identified</button>
+                <button onClick={() => handleAdvanceCaseStatus('CHALLAN_ISSUED')} className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-[#0F7A45] font-bold text-xs">Issue Challan</button>
+                <button onClick={() => handleAdvanceCaseStatus('CLOSED')} className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">Close Case</button>
               </div>
 
               {/* Offender Lookup & Fine Issuance */}
-              <div className="glass-card p-4 rounded-2xl border border-emerald-500/15 space-y-3">
-                <h4 className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+              <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/60 space-y-3">
+                <h4 className="text-xs font-black text-[#0F7A45] flex items-center gap-1.5">
                   <DollarSign size={16} /> Issue Legal Challan Fine
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-400 block mb-1">Vehicle Reg / Offender ID</label>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Vehicle Reg / Offender ID</label>
                     <input
                       type="text"
                       value={queryReference}
                       onChange={(e) => setQueryReference(e.target.value)}
-                      className="w-full p-2 glass-input rounded-xl text-xs font-mono"
+                      className="w-full p-2.5 glass-input rounded-xl text-xs font-mono"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-slate-400 block mb-1">Fine Penalty (INR ₹)</label>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Fine Penalty (INR ₹)</label>
                     <input
                       type="number"
                       value={fineAmount}
                       onChange={(e) => setFineAmount(parseInt(e.target.value))}
-                      className="w-full p-2 glass-input rounded-xl text-xs font-mono"
+                      className="w-full p-2.5 glass-input rounded-xl text-xs font-mono"
                     />
                   </div>
                 </div>
                 <button
                   onClick={handleIssueChallan}
-                  className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-forest-950 font-bold text-xs rounded-xl shadow-glow-emerald"
+                  className="w-full py-2.5 bg-[#0F7A45] hover:bg-[#166534] text-white font-extrabold text-xs rounded-xl shadow-xs"
                 >
                   Generate Official Legal Challan (₹{fineAmount})
                 </button>
@@ -236,7 +230,7 @@ export default function AuthorityDashboard() {
 
               {/* Notes */}
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-300">Investigation Activity Log</h4>
+                <h4 className="text-xs font-bold text-slate-700">Investigation Activity Log</h4>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -245,7 +239,7 @@ export default function AuthorityDashboard() {
                     placeholder="Append investigation log note..."
                     className="flex-1 p-2.5 glass-input rounded-xl text-xs"
                   />
-                  <button onClick={handleAddInvestigationNote} className="px-4 py-2.5 bg-emerald-500/20 text-emerald-300 font-bold text-xs rounded-xl border border-emerald-500/30">
+                  <button onClick={handleAddInvestigationNote} className="px-4 py-2.5 bg-[#0F7A45] text-white font-bold text-xs rounded-xl">
                     Add Log
                   </button>
                 </div>
@@ -259,19 +253,19 @@ export default function AuthorityDashboard() {
       {activeTab === 'evidence' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {evidenceList.map((ev) => (
-            <div key={ev.id} className="glass-card rounded-2xl p-4 border border-emerald-500/15 space-y-3">
-              <img src={ev.fileUrl || '/uploads/dumping_park.jpg'} alt="Evidence" className="w-full h-40 object-cover rounded-xl border border-emerald-500/20" />
+            <div key={ev.id} className="glass-card rounded-2xl p-4 border border-slate-200 space-y-3">
+              <img src={ev.fileUrl || '/uploads/dumping_park.jpg'} alt="Evidence" className="w-full h-40 object-cover rounded-xl border border-slate-200" />
               <div className="flex justify-between items-center text-xs">
-                <span className="font-mono font-bold text-emerald-400">{ev.evidenceNumber}</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">{ev.verificationStatus}</span>
+                <span className="font-mono font-bold text-[#0F7A45]">{ev.evidenceNumber}</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-[#0F7A45]">{ev.verificationStatus}</span>
               </div>
-              <p className="text-xs text-slate-300 line-clamp-2">{ev.description}</p>
-              <div className="p-2 bg-forest-950 rounded-xl border border-emerald-500/20 font-mono text-[10px] text-emerald-300 break-all">
+              <p className="text-xs text-slate-700 line-clamp-2">{ev.description}</p>
+              <div className="p-2 bg-slate-100 rounded-xl font-mono text-[10px] text-slate-700 break-all">
                 SHA-256: {ev.evidenceHash}
               </div>
               <button
                 onClick={() => handleCreateCaseFromEvidence(ev)}
-                className="w-full py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold text-xs rounded-xl border border-emerald-500/40"
+                className="w-full py-2 bg-[#0F7A45] text-white font-bold text-xs rounded-xl shadow-xs"
               >
                 + Open Enforcement Case
               </button>
