@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Save, CheckCircle2, AlertCircle, Settings } from 'lucide-react';
 import api from '../services/api';
+import { motion } from 'framer-motion';
 
 export default function AdminRewardPolicyPage() {
   const [name, setName] = useState('Standard Community Environmental Incentive Policy');
@@ -55,28 +56,33 @@ export default function AdminRewardPolicyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-forest-950 text-slate-100 py-10 px-4 sm:px-6 lg:px-8 space-y-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-[#F7FAF7] text-[#1F2937] py-10 px-4 sm:px-6 lg:px-8 space-y-6"
+    >
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="glass-panel border border-purple-500/30 p-6 rounded-3xl space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-semibold">
+        <div className="bg-white border border-slate-200 p-6 rounded-[20px] space-y-2 shadow-2xs">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-semibold">
             <Settings size={14} /> System Administrator Portal
           </div>
-          <h1 className="text-2xl font-extrabold text-white">Citizen Incentive & Reward Policy Settings</h1>
-          <p className="text-xs text-slate-400">Configure global fine share percentages, maximum cap per report, and minimum fine threshold.</p>
+          <h1 className="text-2xl font-extrabold text-slate-900">Citizen Incentive & Reward Policy Settings</h1>
+          <p className="text-xs text-[#64748B]">Configure global fine share percentages, maximum cap per report, and minimum fine threshold.</p>
         </div>
 
         {message && (
-          <div className={`p-4 rounded-2xl text-xs font-bold border flex items-center justify-between ${message.type === 'success' ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300'}`}>
+          <div className={`p-4 rounded-2xl text-xs font-bold border flex items-center justify-between ${message.type === 'success' ? 'bg-[#DCFCE7]/70 border-emerald-200 text-[#166534]' : 'bg-rose-50 border-rose-200 text-rose-700'}`}>
             <span>{message.text}</span>
             <button onClick={() => setMessage(null)} className="text-xs underline opacity-80">Dismiss</button>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="glass-panel border border-emerald-500/20 rounded-3xl p-6 sm:p-8 space-y-5 shadow-glass">
+        <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-[20px] p-6 sm:p-8 space-y-5 shadow-2xs">
           <div>
-            <label className="text-xs font-bold text-slate-300 block mb-1">Policy Name</label>
+            <label className="text-xs font-bold text-slate-700 block mb-1.5">Policy Name</label>
             <input
               type="text"
               value={name}
@@ -88,7 +94,7 @@ export default function AdminRewardPolicyPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">Fine Share Percentage (%)</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1.5">Fine Share Percentage (%)</label>
               <input
                 type="number"
                 step="0.1"
@@ -102,7 +108,7 @@ export default function AdminRewardPolicyPage() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-300 block mb-1">Max Reward Cap per Report (INR ₹)</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1.5">Max Reward Cap per Report (INR ₹)</label>
               <input
                 type="number"
                 value={maximumReward}
@@ -114,7 +120,7 @@ export default function AdminRewardPolicyPage() {
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-300 block mb-1">Min Fine Required for Reward (INR ₹)</label>
+            <label className="text-xs font-bold text-slate-700 block mb-1.5">Min Fine Required for Reward (INR ₹)</label>
             <input
               type="number"
               value={minimumFine}
@@ -130,16 +136,16 @@ export default function AdminRewardPolicyPage() {
               id="enabled"
               checked={enabled}
               onChange={(e) => setEnabled(e.target.checked)}
-              className="w-4 h-4 rounded text-emerald-500 bg-forest-900 border-emerald-500/30"
+              className="w-4 h-4 rounded text-[#166534] bg-white border-slate-300"
             />
-            <label htmlFor="enabled" className="text-xs font-bold text-slate-200">Enable Automated Citizen Reward Calculation</label>
+            <label htmlFor="enabled" className="text-xs font-bold text-slate-700 select-none">Enable Automated Citizen Reward Calculation</label>
           </div>
 
-          <div className="pt-4 border-t border-emerald-500/10 flex justify-end">
+          <div className="pt-4 border-t border-slate-100 flex justify-end">
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-forest-950 font-bold text-xs rounded-xl shadow-glow-emerald transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-[#166534] hover:bg-[#15803d] text-white font-extrabold text-xs rounded-xl shadow-2xs hover:scale-[1.01] transition-all flex items-center gap-2"
             >
               <Save size={16} /> {loading ? 'Saving Policy...' : 'Save Policy Changes'}
             </button>
@@ -147,6 +153,6 @@ export default function AdminRewardPolicyPage() {
         </form>
 
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -21,7 +21,8 @@ function LocationMarker({ position, onLocationSelected }) {
 }
 
 const MapPicker = ({ latitude, longitude, onLocationChange }) => {
-  const [position, setPosition] = useState([latitude || 37.7749, longitude || -122.4194]);
+  // Default map position: Thrissur, Kerala, India
+  const [position, setPosition] = useState([latitude || 10.8505, longitude || 76.2711]);
   const [loadingGeo, setLoadingGeo] = useState(false);
 
   useEffect(() => {
@@ -64,25 +65,25 @@ const MapPicker = ({ latitude, longitude, onLocationChange }) => {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold text-emerald-300 flex items-center gap-1.5">
-          <MapPin className="w-4 h-4 text-emerald-400" /> Click Map to Pin Exact Location
+        <label className="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+          <MapPin className="w-4 h-4 text-[#166534]" /> Click Map to Pin Exact Location
         </label>
         <button
           type="button"
           onClick={handleUseMyLocation}
           disabled={loadingGeo}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 hover:text-white bg-emerald-500/15 hover:bg-emerald-500/25 px-3 py-1.5 rounded-lg transition-all border border-emerald-500/30 shadow-glow-emerald"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#166534] hover:text-[#15803d] bg-[#DCFCE7] hover:bg-[#DCFCE7]/90 px-3 py-1.5 rounded-xl transition-all border border-emerald-900/10 shadow-2xs"
         >
-          {loadingGeo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Navigation className="w-3.5 h-3.5 text-emerald-400" />}
+          {loadingGeo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Navigation className="w-3.5 h-3.5 text-[#166534]" />}
           Use GPS Location
         </button>
       </div>
 
-      <div className="h-64 w-full rounded-xl overflow-hidden border border-emerald-500/20 shadow-inner relative z-0 glass-panel">
+      <div className="h-64 w-full rounded-2xl overflow-hidden border border-slate-200 shadow-inner relative z-0">
         <MapContainer center={position} zoom={13} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
           <TileLayer
             attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
           <LocationMarker position={position} onLocationSelected={handleSelectLocation} />
         </MapContainer>
