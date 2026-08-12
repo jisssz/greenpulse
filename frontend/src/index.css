@@ -128,10 +128,19 @@
   50% { opacity: 0.8; transform: scale(1.03); }
 }
 
+@keyframes scanLaser {
+  0%, 100% { top: 0%; }
+  50% { top: 75%; }
+}
+
 .animate-float-slow {
   animation: floatSlow 8s ease-in-out infinite;
 }
 
 .animate-pulse-glow {
   animation: pulseGlow 6s ease-in-out infinite;
+}
+
+.animate-scan-laser {
+  animation: scanLaser 3s linear infinite;
 }

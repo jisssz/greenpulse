@@ -22,13 +22,22 @@ const CitizenDashboard = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const totalCount = reports.length || 248;
-  const resolvedCount = reports.filter(r => r.status === 'RESOLVED').length || 176;
-  const pendingCount = reports.filter(r => r.status === 'REPORTED' || r.status === 'IN_PROGRESS' || r.status === 'TRIAGED').length || 72;
+  // Seeding Indian coordinates if database results are empty or SF-centered
+  const displayReports = reports.length > 0 ? reports : [
+    { id: 201, title: 'Severe Solid Waste Heap near Railway Gate', status: 'IN_PROGRESS', latitude: 10.5276, longitude: 76.2144, reportNumber: 'GP-IN-201', priority: 'HIGH', categoryName: 'Plastic Waste', address: 'Thrissur, Kerala, India', reporterEmail: user?.email },
+    { id: 202, title: 'Illegal Waste Burning in Residential Zone', status: 'RESOLVED', latitude: 9.9312, longitude: 76.2673, reportNumber: 'GP-IN-202', priority: 'CRITICAL', categoryName: 'Air Pollution', address: 'Kochi, Kerala, India', reporterEmail: user?.email },
+    { id: 203, title: 'Electronic Scrap Yard Blocking Lane', status: 'TRIAGED', latitude: 12.9716, longitude: 77.5946, reportNumber: 'GP-IN-203', priority: 'MEDIUM', categoryName: 'E-Waste', address: 'Bangalore, Karnataka, India', reporterEmail: user?.email },
+    { id: 204, title: 'Toxic Chemical Sludge in Municipal Canal', status: 'RESOLVED', latitude: 19.0760, longitude: 72.8777, reportNumber: 'GP-IN-204', priority: 'HIGH', categoryName: 'Water Pollution', address: 'Mumbai, Maharashtra, India', reporterEmail: user?.email },
+    { id: 205, title: 'Heavy Construction Debris on Wetlands', status: 'REPORTED', latitude: 10.5123, longitude: 76.2012, reportNumber: 'GP-IN-205', priority: 'LOW', categoryName: 'Construction Debris', address: 'Thrissur, Kerala, India', reporterEmail: user?.email }
+  ];
+
+  const totalCount = displayReports.length;
+  const resolvedCount = displayReports.filter(r => r.status === 'RESOLVED').length;
+  const pendingCount = displayReports.filter(r => r.status === 'REPORTED' || r.status === 'IN_PROGRESS' || r.status === 'TRIAGED').length;
 
   // Derive custom user-specific impact stats
-  const citizenReportsCount = reports.filter(r => r.reporterEmail === user?.email).length || 12;
-  const citizenResolvedCount = reports.filter(r => r.reporterEmail === user?.email && r.status === 'RESOLVED').length || 8;
+  const citizenReportsCount = displayReports.filter(r => r.reporterEmail === user?.email || r.reporterEmail === 'citizen@greenpulse.demo').length;
+  const citizenResolvedCount = displayReports.filter(r => (r.reporterEmail === user?.email || r.reporterEmail === 'citizen@greenpulse.demo') && r.status === 'RESOLVED').length;
   const wastePreventedKg = citizenReportsCount * 25 + 20;
 
   return (
@@ -147,7 +156,7 @@ const CitizenDashboard = () => {
           </div>
 
           <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
-            {reports.slice(0, 5).map(report => (
+            {displayReports.slice(0, 5).map(report => (
               <Link
                 key={report.id}
                 to={`/reports/${report.id}`}
@@ -163,31 +172,10 @@ const CitizenDashboard = () => {
                       {report.status}
                     </span>
                   </div>
-                  <p className="text-[10px] text-[#64748B] truncate mt-0.5">{report.locationText || 'Thrissur, Kerala'}</p>
+                  <p className="text-[10px] text-[#64748B] truncate mt-0.5">{report.address || 'Thrissur, Kerala, India'}</p>
                 </div>
               </Link>
             ))}
-
-            {reports.length === 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center font-bold">♻️</div>
-                  <div className="flex-1">
-                    <h4 className="text-xs font-bold text-slate-900">Plastic Waste Accumulation</h4>
-                    <p className="text-[10px] text-[#64748B]">Kochi, Kerala • 2h ago</p>
-                  </div>
-                  <span className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-black bg-[#DCFCE7] text-[#166534]">Resolved</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center font-bold">⚠️</div>
-                  <div className="flex-1">
-                    <h4 className="text-xs font-bold text-slate-900">Illegal Dumping</h4>
-                    <p className="text-[10px] text-[#64748B]">Thrissur, Kerala • 6h ago</p>
-                  </div>
-                  <span className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-100 text-amber-800">Pending</span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -195,7 +183,7 @@ const CitizenDashboard = () => {
         <div className="lg:col-span-5 bg-white rounded-[20px] p-5 border border-emerald-950/5 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-ping"></span> Geotagged Issue Map
+              <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-ping"></span> Live Environmental Map
             </h3>
             <div className="flex items-center gap-2 text-[10px] font-bold text-[#64748B]">
               <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span> Resolved</span>
@@ -204,9 +192,9 @@ const CitizenDashboard = () => {
           </div>
 
           <div className="h-[300px] rounded-xl overflow-hidden border border-slate-200 relative">
-            <HotspotMap reports={reports} />
+            <HotspotMap reports={displayReports} />
             <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 text-[10px] font-bold text-slate-800 flex items-center gap-1.5 shadow-sm z-20">
-              <MapPin className="w-3.5 h-3.5 text-[#166534]" /> Thrissur, Kerala
+              <MapPin className="w-3.5 h-3.5 text-[#166534]" /> Active View: India
             </div>
           </div>
         </div>
