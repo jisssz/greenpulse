@@ -23,9 +23,11 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         List<User> users = userRepository.findAll();
         for (User user : users) {
-            // Encode demo password reliably on startup
-            user.setPasswordHash(passwordEncoder.encode("password123"));
-            userRepository.save(user);
+            // Encode demo password reliably on startup only if not already BCrypt encoded
+            if (user.getPasswordHash() == null || !user.getPasswordHash().startsWith("$2")) {
+                user.setPasswordHash(passwordEncoder.encode("password123"));
+                userRepository.save(user);
+            }
         }
     }
 }
