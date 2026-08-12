@@ -1,11 +1,34 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Leaf, ArrowRight, ShieldCheck, Award, MapPin, CheckCircle, BarChart3, Users } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Leaf, ArrowRight, ShieldCheck, Award, MapPin, CheckCircle, BarChart3, Users, Sparkles, User, Shield, ShieldAlert, Wrench, X, Play } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const LandingPage = () => {
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [loadingRole, setLoadingRole] = useState(null);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleDemoLogin = async (demoEmail, roleName) => {
+    setLoadingRole(roleName);
+    try {
+      const u = await login(demoEmail, 'password123');
+      if (u && (u.role === 'AUTHORITY_OFFICER' || u.role === 'ADMIN')) {
+        navigate('/enforcement');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      alert('Demo login failed: ' + err.message);
+    } finally {
+      setLoadingRole(null);
+      setShowDemoModal(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#F7FAF7] text-[#1F2937] overflow-hidden pb-24">
+    <div className="min-h-screen bg-[#F7FAF7] text-[#1F2937] overflow-hidden pb-24 relative">
       {/* Soft Ambient Eco Glows */}
       <div className="eco-glow top-0 right-0 translate-x-1/3 -translate-y-1/3"></div>
       <div className="eco-glow-subtle bottom-0 left-0 -translate-x-1/3 translate-y-1/3"></div>
@@ -36,18 +59,18 @@ const LandingPage = () => {
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link
-                to="/login"
+              <button
+                onClick={() => setShowDemoModal(true)}
                 className="px-6 py-3.5 bg-[#166534] hover:bg-[#15803d] text-white font-extrabold text-sm rounded-xl shadow-sm hover:scale-[1.01] transition-all flex items-center gap-2"
               >
-                Report an Issue <PlusCircleIcon className="w-4 h-4" />
-              </Link>
-              <Link
-                to="/login"
+                Try Live Demo <Sparkles className="w-4 h-4 text-emerald-200" />
+              </button>
+              <button
+                onClick={() => setShowDemoModal(true)}
                 className="px-6 py-3.5 bg-white hover:bg-slate-50 text-[#1F2937] font-extrabold text-sm rounded-xl border border-slate-200 shadow-2xs hover:scale-[1.01] transition-all flex items-center gap-2"
               >
                 Explore Dashboard <ArrowRight className="w-4 h-4 text-[#166534]" />
-              </Link>
+              </button>
             </div>
           </motion.div>
 
@@ -60,7 +83,6 @@ const LandingPage = () => {
           >
             {/* SVG Eco-Tech Illustration */}
             <svg viewBox="0 0 500 400" className="w-full max-w-[480px] drop-shadow-md z-0" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Background hills */}
               <path d="M 0 350 Q 150 280 300 330 T 500 350 L 500 400 L 0 400 Z" fill="#E8F5E9" />
               <path d="M 100 360 Q 250 310 400 350 T 500 370 L 500 400 L 100 400 Z" fill="#C8E6C9" opacity="0.7" />
               
@@ -169,15 +191,112 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Demo Access Overlay Modal */}
+      <AnimatePresence>
+        {showDemoModal && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white border border-slate-200 rounded-[20px] p-6 max-w-2xl w-full shadow-md space-y-6 relative"
+            >
+              <button 
+                onClick={() => setShowDemoModal(false)}
+                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="text-center space-y-1">
+                <div className="w-10 h-10 bg-[#166534] rounded-xl mx-auto flex items-center justify-center shadow-xs">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="font-extrabold text-lg text-slate-900">Explore GreenPulse Live Demo</h3>
+                <p className="text-xs text-[#64748B]">Select one of the pre-seeded municipal roles to instantly enter the workspace.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                
+                {/* Citizen Demo Card */}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between items-center text-center space-y-3">
+                  <div className="w-10 h-10 rounded-full bg-[#DCFCE7] text-[#166534] flex items-center justify-center">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-xs text-slate-900">Citizen Portal</h4>
+                    <p className="text-[10px] text-[#64748B] leading-relaxed mt-1">Submit reports, view live map, and claim Eco-Point rewards.</p>
+                  </div>
+                  <button
+                    onClick={() => handleDemoLogin('citizen@greenpulse.demo', 'Citizen')}
+                    disabled={loadingRole !== null}
+                    className="w-full py-2 bg-[#166534] hover:bg-[#15803d] text-white font-extrabold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    {loadingRole === 'Citizen' ? 'Logging in...' : 'Enter' } <Play className="w-3 h-3 fill-current" />
+                  </button>
+                </div>
+
+                {/* Authority Demo Card */}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between items-center text-center space-y-3">
+                  <div className="w-10 h-10 rounded-full bg-[#DCFCE7] text-[#166534] flex items-center justify-center">
+                    <Shield className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-xs text-slate-900">Municipal Officer</h4>
+                    <p className="text-[10px] text-[#64748B] leading-relaxed mt-1">Verify SHA-256 digests, view compliance, and issue fines.</p>
+                  </div>
+                  <button
+                    onClick={() => handleDemoLogin('authority@greenpulse.demo', 'Authority')}
+                    disabled={loadingRole !== null}
+                    className="w-full py-2 bg-[#166534] hover:bg-[#15803d] text-white font-extrabold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    {loadingRole === 'Authority' ? 'Logging in...' : 'Enter' } <Play className="w-3 h-3 fill-current" />
+                  </button>
+                </div>
+
+                {/* Moderator Demo Card */}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between items-center text-center space-y-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center">
+                    <ShieldAlert className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-xs text-slate-900">Queue Moderator</h4>
+                    <p className="text-[10px] text-[#64748B] leading-relaxed mt-1">Audit incoming logs, filter duplicates, and dispatch tasks.</p>
+                  </div>
+                  <button
+                    onClick={() => handleDemoLogin('moderator@greenpulse.demo', 'Moderator')}
+                    disabled={loadingRole !== null}
+                    className="w-full py-2 bg-[#166534] hover:bg-[#15803d] text-white font-extrabold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    {loadingRole === 'Moderator' ? 'Logging in...' : 'Enter' } <Play className="w-3 h-3 fill-current" />
+                  </button>
+                </div>
+
+              </div>
+
+              <div className="text-center pt-2 border-t border-slate-100 flex items-center justify-center gap-4 text-[10px] font-bold text-[#64748B]">
+                <span>Other Roles:</span>
+                <button 
+                  onClick={() => handleDemoLogin('worker@greenpulse.demo', 'Worker')}
+                  className="hover:text-[#166534] underline"
+                >
+                  Field Worker Demo
+                </button>
+                <button 
+                  onClick={() => handleDemoLogin('admin@greenpulse.demo', 'Admin')}
+                  className="hover:text-[#166534] underline"
+                >
+                  System Admin Demo
+                </button>
+              </div>
+
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };
-
-// Simple inline SVG plus icon helper
-const PlusCircleIcon = (props) => (
-  <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
 
 export default LandingPage;
