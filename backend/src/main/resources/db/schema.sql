@@ -201,3 +201,16 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     metadata TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS waste_predictions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    image_url VARCHAR(512) NOT NULL,
+    predicted_category VARCHAR(100) NOT NULL,
+    confidence DOUBLE NOT NULL,
+    recyclable BOOLEAN NOT NULL,
+    recommended_bin VARCHAR(100) NOT NULL,
+    eco_points INT NOT NULL DEFAULT 10,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+

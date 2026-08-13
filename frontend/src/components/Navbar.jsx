@@ -80,6 +80,19 @@ const Navbar = () => {
 
               {user.role === 'CITIZEN' && (
                 <Link 
+                  to="/ai-scanner" 
+                  className={`px-3 py-1.5 rounded-full transition-all ${
+                    location.pathname === '/ai-scanner' 
+                      ? 'bg-[#DCFCE7] text-[#166534] font-bold' 
+                      : 'text-[#64748B] hover:text-[#1F2937] hover:bg-slate-50'
+                  }`}
+                >
+                  AI Scanner
+                </Link>
+              )}
+
+              {user.role === 'CITIZEN' && (
+                <Link 
                   to="/rewards" 
                   className={`px-3 py-1.5 rounded-full transition-all ${
                     location.pathname === '/rewards' 
@@ -191,6 +204,9 @@ const Navbar = () => {
           {user ? (
             <div className="flex flex-col gap-2 text-sm font-semibold">
               <Link to={getDashboardPath()} onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50">Dashboard</Link>
+              {user.role === 'CITIZEN' && (
+                <Link to="/ai-scanner" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50">AI Scanner</Link>
+              )}
               {user.role === 'CITIZEN' && (
                 <Link to="/rewards" onClick={() => setMobileMenuOpen(false)} className="px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50">Impact</Link>
               )}

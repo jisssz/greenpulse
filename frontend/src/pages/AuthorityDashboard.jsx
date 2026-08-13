@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Camera, FileCheck, DollarSign, Award, Search, AlertCircle, Plus, CheckCircle2, Lock, Activity, RefreshCw } from 'lucide-react';
+import { Shield, Camera, DollarSign, CheckCircle2, Activity, Sparkles, Brain, AlertTriangle, TrendingUp, BarChart2 } from 'lucide-react';
 import api from '../services/api';
 import CCTVImportModal from '../components/CCTVImportModal';
-import EvidenceTimeline from '../components/EvidenceTimeline';
 import { motion } from 'framer-motion';
 
 export default function AuthorityDashboard() {
@@ -10,9 +9,23 @@ export default function AuthorityDashboard() {
   const [evidenceList, setEvidenceList] = useState([]);
   const [selectedCase, setSelectedCase] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('cases'); // 'cases' | 'evidence' | 'challans'
+  const [activeTab, setActiveTab] = useState('cases'); // 'cases' | 'evidence' | 'intelligence'
   const [isCctvModalOpen, setIsCctvModalOpen] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
+  const [aiIntelligence, setAiIntelligence] = useState({
+    categoryTrends: { "Plastic": 45, "Metal": 18, "Organic Waste": 32, "Electronic Waste": 12, "Paper": 22 },
+    scanVolumeByMonth: [
+      { month: "May", scans: 120 },
+      { month: "Jun", scans: 180 },
+      { month: "Jul", scans: 240 },
+      { month: "Aug", scans: 310 }
+    ],
+    illegalDumpingRiskIndices: [
+      { location: "West Gate, Thrissur", risk: "HIGH" },
+      { location: "Marine Drive, Mumbai", risk: "MEDIUM" },
+      { location: "Bannerghatta, Bangalore", risk: "CRITICAL" }
+    ]
+  });
 
   // Form states
   const [queryReference, setQueryReference] = useState('KL-08-EQ-9921');
@@ -27,12 +40,15 @@ export default function AuthorityDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [casesRes, evidenceRes] = await Promise.all([
+      const [casesRes, evidenceRes, intelRes] = await Promise.all([
         api.get('/enforcement/cases'),
-        api.get('/evidence?status=VERIFIED')
+        api.get('/evidence?status=VERIFIED'),
+        api.get('/ai/intelligence')
       ]);
       if (casesRes.success) setCases(casesRes.data.content || []);
       if (evidenceRes.success) setEvidenceList(evidenceRes.data.content || []);
+      if (intelRes.data) setAiIntelligence(intelRes.data);
+      
       if (casesRes.data?.content?.length > 0) {
         setSelectedCase(casesRes.data.content[0]);
       }
@@ -85,7 +101,6 @@ export default function AuthorityDashboard() {
         fetchData();
       }
     } catch (err) {
-      // Fallback update for mock values
       setActionMessage({ type: 'success', text: `Mock Case status updated to ${newStatus}` });
       setSelectedCase({ ...activeCase, caseStatus: newStatus });
     }
@@ -203,6 +218,12 @@ export default function AuthorityDashboard() {
           className={`px-4 py-2.5 rounded-xl transition-all ${activeTab === 'evidence' ? 'bg-[#166534] text-white shadow-sm' : 'text-[#64748B] hover:bg-slate-100'}`}
         >
           Verified Evidence Stream ({displayEvidence.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('intelligence')}
+          className={`px-4 py-2.5 rounded-xl transition-all ${activeTab === 'intelligence' ? 'bg-[#166534] text-white shadow-sm' : 'text-[#64748B] hover:bg-slate-100'} flex items-center gap-1.5`}
+        >
+          <Sparkles className="w-3.5 h-3.5" /> AI Waste Intelligence
         </button>
       </div>
 
@@ -340,6 +361,78 @@ export default function AuthorityDashboard() {
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {activeTab === 'intelligence' && (
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          {/* Waste category trends */}
+          <div className="md:col-span-6 bg-white border border-emerald-950/5 rounded-[20px] p-5 shadow-xs space-y-4">
+            <h3 className="font-extrabold text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-1.5">
+              <Brain className="w-4 h-4 text-[#166534]" /> Waste Category Trends (AI Inferences)
+            </h3>
+            <div className="space-y-3 pt-2">
+              {Object.entries(aiIntelligence.categoryTrends).map(([cat, count]) => {
+                const total = Object.values(aiIntelligence.categoryTrends).reduce((a, b) => a + b, 0);
+                const pct = Math.round((count / total) * 100);
+                return (
+                  <div key={cat} className="space-y-1 text-xs">
+                    <div className="flex justify-between font-bold text-slate-700">
+                      <span>{cat}</span>
+                      <span>{count} scans ({pct}%)</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="bg-emerald-600 h-full rounded-full transition-all duration-500" 
+                        style={{ width: `${pct}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* City waste patterns & monthly volume */}
+          <div className="md:col-span-6 space-y-6">
+            <div className="bg-white border border-emerald-950/5 rounded-[20px] p-5 shadow-xs space-y-4">
+              <h3 className="font-extrabold text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-1.5">
+                <TrendingUp className="w-4 h-4 text-[#166534]" /> AI Ingestion Volume Growth
+              </h3>
+              <div className="flex items-end justify-between gap-4 h-36 pt-4">
+                {aiIntelligence.scanVolumeByMonth.map((item) => {
+                  const max = Math.max(...aiIntelligence.scanVolumeByMonth.map(m => m.scans));
+                  const height = `${(item.scans / max) * 100}%`;
+                  return (
+                    <div key={item.month} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                      <div className="w-full bg-gradient-to-t from-emerald-700 to-emerald-500 rounded-t-lg transition-all duration-500" style={{ height }}></div>
+                      <span className="text-[10px] text-[#64748B] font-bold">{item.month} ({item.scans})</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Illegal dumping risk index predictions */}
+            <div className="bg-white border border-emerald-950/5 rounded-[20px] p-5 shadow-xs space-y-4">
+              <h3 className="font-extrabold text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600" /> AI Illegal Dumping Predictor (Risk Level)
+              </h3>
+              <div className="space-y-3">
+                {aiIntelligence.illegalDumpingRiskIndices.map((idx) => (
+                  <div key={idx.location} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                    <span className="font-bold text-slate-800">{idx.location}</span>
+                    <span className={`px-2.5 py-0.5 rounded-full font-black text-[9px] ${
+                      idx.risk === 'CRITICAL' ? 'bg-rose-100 text-rose-800 animate-pulse' :
+                      idx.risk === 'HIGH' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      {idx.risk} RISK
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

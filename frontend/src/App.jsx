@@ -15,6 +15,7 @@ import CitizenRewardsPage from './pages/CitizenRewardsPage';
 import AdminRewardPolicyPage from './pages/AdminRewardPolicyPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import NotificationsPage from './pages/NotificationsPage';
+import AIWasteScanner from './pages/AIWasteScanner';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -103,6 +104,11 @@ function AppRoutes() {
           <Route path="/rewards" element={
             <ProtectedRoute>
               <CitizenRewardsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/ai-scanner" element={
+            <ProtectedRoute allowedRoles={['CITIZEN', 'ADMIN']}>
+              <AIWasteScanner />
             </ProtectedRoute>
           } />
 

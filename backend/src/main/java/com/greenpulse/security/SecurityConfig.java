@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/fines/**").authenticated()
                 .requestMatchers("/api/evidence/**").authenticated()
                 .requestMatchers("/api/rewards/**").authenticated()
-                .requestMatchers("/api/reports/**", "/api/analytics/**", "/api/notifications/**").authenticated()
+                .requestMatchers("/api/reports/**", "/api/analytics/**", "/api/notifications/**", "/api/ai/**").authenticated()
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))
