@@ -359,9 +359,17 @@ const AIWasteScanner = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white border border-slate-150 rounded-xl p-3.5">
+                    <div className="bg-white border border-slate-150 rounded-xl p-3.5 space-y-1.5">
                       <span className="text-[9px] font-bold text-[#64748B] block">Neural Confidence</span>
-                      <span className="text-lg font-black text-slate-900">{prediction.confidence}%</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-black text-slate-900">{prediction.confidence}%</span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-1 overflow-hidden">
+                        <div 
+                          className="bg-emerald-600 h-1 rounded-full transition-all duration-500" 
+                          style={{ width: `${prediction.confidence}%` }}
+                        ></div>
+                      </div>
                     </div>
                     <div className="bg-white border border-slate-150 rounded-xl p-3.5">
                       <span className="text-[9px] font-bold text-[#64748B] block">Recyclable Status</span>
@@ -369,6 +377,10 @@ const AIWasteScanner = () => {
                         {prediction.recyclable ? 'RECYCLABLE' : 'SPECIAL DISPOSAL'}
                       </span>
                     </div>
+                  </div>
+
+                  <div className="p-3 bg-[#DCFCE7]/40 rounded-xl border border-emerald-100/50 text-[10px] text-emerald-800 font-semibold">
+                    🌿 Environmental Impact: You diverted approximately 0.2kg waste from landfill
                   </div>
 
                   <div className="bg-white border border-slate-150 rounded-xl p-4 space-y-2">

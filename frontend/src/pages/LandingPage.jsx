@@ -346,11 +346,19 @@ const LandingPage = () => {
                             {scanResult ? scanResult.predictedCategory : activeItem.category}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-500 font-semibold">Confidence:</span>
-                          <span className="font-mono font-extrabold text-emerald-600">
-                            {scanResult ? `${scanResult.confidence}%` : activeItem.confidence}
-                          </span>
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 font-semibold">Confidence:</span>
+                            <span className="font-mono font-extrabold text-emerald-600">
+                              {scanResult ? `${scanResult.confidence}%` : activeItem.confidence}
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                            <div 
+                              className="bg-emerald-600 h-1.5 rounded-full transition-all duration-500" 
+                              style={{ width: `${scanResult ? scanResult.confidence : parseFloat(activeItem.confidence)}%` }}
+                            ></div>
+                          </div>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-slate-500 font-semibold">Recommended:</span>
@@ -364,6 +372,9 @@ const LandingPage = () => {
                             <Award className="w-3.5 h-3.5 text-amber-500" />
                             +{scanResult ? scanResult.ecoPoints : activeItem.points.split(' ')[0]} XP
                           </span>
+                        </div>
+                        <div className="p-2.5 bg-[#DCFCE7]/40 rounded-lg border border-emerald-100/50 text-[10px] text-emerald-800 font-semibold">
+                          🌿 Environmental Impact: You diverted approximately 0.2kg waste from landfill
                         </div>
                       </motion.div>
                     )}
