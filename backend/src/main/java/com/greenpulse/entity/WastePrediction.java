@@ -36,12 +36,18 @@ public class WastePrediction {
     @Column(nullable = false, length = 30)
     private String status = "AUTO_APPROVED";
 
+    @Column(name = "condition_status", length = 100)
+    private String conditionStatus;
+
+    @Column(name = "material_type", length = 150)
+    private String materialType;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public WastePrediction() {}
 
-    public WastePrediction(Long id, User user, String imageUrl, String predictedCategory, Double confidence, Boolean recyclable, String recommendedBin, Integer ecoPoints, String status) {
+    public WastePrediction(Long id, User user, String imageUrl, String predictedCategory, Double confidence, Boolean recyclable, String recommendedBin, Integer ecoPoints, String status, String conditionStatus, String materialType) {
         this.id = id;
         this.user = user;
         this.imageUrl = imageUrl;
@@ -51,6 +57,8 @@ public class WastePrediction {
         this.recommendedBin = recommendedBin;
         this.ecoPoints = ecoPoints;
         this.status = status;
+        this.conditionStatus = conditionStatus;
+        this.materialType = materialType;
     }
 
     public Long getId() { return id; }
@@ -79,6 +87,12 @@ public class WastePrediction {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getConditionStatus() { return conditionStatus; }
+    public void setConditionStatus(String conditionStatus) { this.conditionStatus = conditionStatus; }
+
+    public String getMaterialType() { return materialType; }
+    public void setMaterialType(String materialType) { this.materialType = materialType; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

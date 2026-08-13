@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { 
   Leaf, ArrowRight, ShieldCheck, Award, MapPin, CheckCircle, 
   Users, Sparkles, User, Shield, ShieldAlert, X, Scan, 
-  Loader2, Cpu 
+  Loader2, Cpu, Upload, Camera
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Mock waste items for the AI Sandbox referencing local public assets
-const sandboxItems = [
-  { id: 'bottle', name: 'Plastic Water Bottle', image: '/assets/waste/plastic-bottle.jpg', category: 'Plastic Waste', confidence: '96.8%', binColor: 'text-emerald-600 bg-emerald-50 border-emerald-100', points: '15 points' },
-  { id: 'apple', name: 'Half-Eaten Apple Core', image: '/assets/waste/apple-core.jpg', category: 'Organic Waste', confidence: '94.2%', binColor: 'text-amber-600 bg-amber-50 border-amber-100', points: '10 points' },
-  { id: 'laptop', name: 'Discarded Circuit Board', image: '/assets/waste/circuit-board.jpg', category: 'E-Waste', confidence: '97.5%', binColor: 'text-indigo-600 bg-indigo-50 border-indigo-100', points: '30 points' },
-  { id: 'sodacan', name: 'Crushed Soda Can', image: '/assets/waste/soda-can.jpg', category: 'Metal Waste', confidence: '95.1%', binColor: 'text-teal-600 bg-teal-50 border-teal-100', points: '20 points' }
+const exampleItems = [
+  { id: 'bottle', name: 'Plastic Water Bottle', image: '/assets/waste/plastic-bottle.jpg', category: 'Plastic Waste', confidence: '96.8%', points: '15 points' },
+  { id: 'apple', name: 'Half-Eaten Apple Core', image: '/assets/waste/apple-core.jpg', category: 'Organic Waste', confidence: '94.2%', points: '10 points' },
+  { id: 'laptop', name: 'Discarded Circuit Board', image: '/assets/waste/circuit-board.jpg', category: 'E-Waste', confidence: '97.5%', points: '30 points' },
+  { id: 'sodacan', name: 'Crushed Soda Can', image: '/assets/waste/soda-can.jpg', category: 'Metal Waste', confidence: '95.1%', points: '20 points' }
 ];
 
 const LandingPage = () => {
@@ -24,10 +23,17 @@ const LandingPage = () => {
   const navigate = useNavigate();
 
   // AI Sandbox states
-  const [activeItem, setActiveItem] = useState(null);
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanStep, setScanStep] = useState(0); // 0 = idle, 1 = uploading, 2 = scanning, 3 = generating
   const [scanResult, setScanResult] = useState(null);
   const [scanError, setScanError] = useState(null);
+
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Animated counters
   const [stats, setStats] = useState({ volunteers: 100, wasteDiverted: 500, complianceRate: 70 });
@@ -72,11 +78,77 @@ const LandingPage = () => {
     }
   };
 
-  const handleTriggerScan = async (item) => {
-    setActiveItem(item);
+  const selectFile = (selectedFile) => {
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowed.includes(selectedFile.type)) {
+      setScanError("Please upload JPG, PNG, or WEBP images only");
+      return;
+    }
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      setScanError("Image must be below 5MB");
+      return;
+    }
+    setScanError(null);
+    setFile(selectedFile);
+    setPreviewUrl(URL.createObjectURL(selectedFile));
+    setScanResult(null);
+    stopCamera();
+  };
+
+  const startCamera = async () => {
+    setFile(null);
+    setPreviewUrl(null);
+    setScanResult(null);
+    setScanError(null);
+    setIsCameraActive(true);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment', width: 640, height: 480 } 
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      setScanError("Camera access denied or unavailable. Please upload an image file instead.");
+      setIsCameraActive(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  const captureSnapshot = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob((blob) => {
+        const capturedFile = new File([blob], `capture_${Date.now()}.png`, { type: 'image/png' });
+        setFile(capturedFile);
+        setPreviewUrl(URL.createObjectURL(capturedFile));
+        stopCamera();
+      }, 'image/png');
+    }
+  };
+
+  const handleScanSubmit = async () => {
+    if (!file) return;
     setIsScanning(true);
     setScanResult(null);
     setScanError(null);
+    setScanStep(1);
 
     try {
       // 1. Resolve token or sign in guest automatically
@@ -92,12 +164,10 @@ const LandingPage = () => {
         }
       }
 
-      // 2. Fetch target image file and compile Multipart form
-      const imageResponse = await fetch(item.image);
-      if (!imageResponse.ok) throw new Error("Asset unavailable");
-      const blob = await imageResponse.blob();
-      const file = new File([blob], `${item.id}.jpg`, { type: 'image/jpeg' });
+      setScanStep(2);
+      setTimeout(() => { if (isScanning) setScanStep(3); }, 800);
 
+      // 2. Compile Multipart form
       const formData = new FormData();
       formData.append('file', file);
 
@@ -118,15 +188,82 @@ const LandingPage = () => {
       console.warn("AI demo scan failed, running local sandbox prediction:", err.message);
       // Fallback local mock simulation to keep workspace active even if backend is offline
       setScanResult({
-        predictedCategory: item.category.replace(" Waste", ""),
-        confidence: parseFloat(item.confidence),
-        recyclable: item.category !== 'Hazardous Waste',
-        recommendedBin: item.id === 'bottle' ? 'Blue Bin' : item.id === 'apple' ? 'Compost Bin' : item.id === 'laptop' ? 'E-Waste Bin' : 'Red Bin',
-        ecoPoints: item.id === 'bottle' ? 10 : item.id === 'apple' ? 10 : item.id === 'laptop' ? 50 : 20
+        predictedCategory: "Plastic",
+        confidence: 94.5,
+        recyclable: true,
+        recommendedBin: "Blue Bin",
+        ecoPoints: 10,
+        materialType: "PET Plastic",
+        conditionStatus: "Standard Recyclable",
+        recommendedAction: "Clean and place in blue recycling bin"
       });
       setScanError("AI service temporarily unavailable. Falling back to simulated output.");
     } finally {
       setIsScanning(false);
+      setScanStep(0);
+    }
+  };
+
+  const loadExample = async (item) => {
+    try {
+      setIsScanning(true);
+      setScanResult(null);
+      setScanError(null);
+      setScanStep(1);
+
+      const response = await fetch(item.image);
+      const blob = await response.blob();
+      const exampleFile = new File([blob], `${item.id}.jpg`, { type: 'image/jpeg' });
+
+      setFile(exampleFile);
+      setPreviewUrl(item.image);
+
+      setScanStep(2);
+      setTimeout(() => setScanStep(3), 800);
+
+      let token = localStorage.getItem('token');
+      if (!token) {
+        const authRes = await api.post('/auth/login', {
+          email: 'citizen@greenpulse.demo',
+          password: 'password123'
+        });
+        if (authRes.token) {
+          token = authRes.token;
+          localStorage.setItem('token', token);
+        }
+      }
+
+      const formData = new FormData();
+      formData.append('file', exampleFile);
+
+      const headers = { 'Content-Type': 'multipart/form-data' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const res = await api.post('/ai/classify', formData, { headers });
+
+      if (res.success && res.data) {
+        setScanResult(res.data);
+      } else {
+        throw new Error("Failed to classify");
+      }
+    } catch (err) {
+      console.warn("Example scan failed, applying local prediction simulation: ", err.message);
+      setScanResult({
+        predictedCategory: item.category.replace(" Waste", ""),
+        confidence: parseFloat(item.confidence),
+        recyclable: item.category !== 'Hazardous Waste',
+        recommendedBin: item.id === 'bottle' ? 'Blue Bin' : item.id === 'apple' ? 'Compost Bin' : item.id === 'laptop' ? 'E-Waste Bin' : 'Red Bin',
+        ecoPoints: item.id === 'bottle' ? 10 : item.id === 'apple' ? 10 : item.id === 'laptop' ? 50 : 20,
+        materialType: item.id === 'laptop' ? 'Silicon / PCB' : item.id === 'sodacan' ? 'Aluminium' : item.id === 'apple' ? 'Organic scraps' : 'PET Plastic',
+        conditionStatus: 'Clean / Recyclable',
+        recommendedAction: item.id === 'bottle' ? 'Rinse thoroughly and place in the Blue plastic bin.' : 'Sort and recycle item in designated municipal bins.'
+      });
+      setScanError("AI service temporarily unavailable. Running fallback output.");
+    } finally {
+      setIsScanning(false);
+      setScanStep(0);
     }
   };
 
@@ -261,131 +398,235 @@ const LandingPage = () => {
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">Try our AI Waste Classifier</h2>
             <p className="text-xs text-[#64748B] leading-relaxed">
-              When citizens upload pictures, GreenPulse uses deep learning models to categorize incidents, analyze details, and compute reward incentives automatically. Choose an object below to trace the workflow.
+              Upload any waste or object image to compute real-time category classifications, material types, and eco reward incentives.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch pt-4">
             
-            {/* Left side: Item Selector */}
-            <div className="md:col-span-5 flex flex-col justify-between space-y-4">
-              <span className="text-xs font-bold text-[#64748B]">Select an Item to Scan:</span>
-              <div className="grid grid-cols-2 gap-3 flex-1">
-                {sandboxItems.map(item => (
+            {/* Left side: Upload card & camera capture (Workspace) */}
+            <div className="md:col-span-7 bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                <span className="text-xs font-bold text-[#64748B]">Sandbox Image Ingestion</span>
+                <button
+                  onClick={() => {
+                    if (isCameraActive) stopCamera();
+                    else startCamera();
+                  }}
+                  className="px-3.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-[#DCFCE7] border border-emerald-100 text-[#166534] font-extrabold text-[10px] flex items-center gap-1 cursor-pointer"
+                >
+                  <Camera className="w-3.5 h-3.5" /> {isCameraActive ? "Close Camera" : "Use Camera"}
+                </button>
+              </div>
+
+              <div 
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (e.dataTransfer.files && e.dataTransfer.files[0]) selectFile(e.dataTransfer.files[0]);
+                }}
+                className="relative h-[280px] rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center p-4 text-center cursor-pointer overflow-hidden"
+              >
+                {/* Camera View */}
+                {isCameraActive && (
+                  <div className="w-full h-full relative">
+                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover rounded-lg"></video>
+                    <button
+                      onClick={captureSnapshot}
+                      className="absolute bottom-4 left-1/2 -translate-x-1/2 w-12 h-12 bg-white hover:bg-emerald-50 text-[#166534] rounded-full flex items-center justify-center border-4 border-emerald-600/20 cursor-pointer shadow-md"
+                    >
+                      <Camera className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Preview Image */}
+                {!isCameraActive && previewUrl && (
+                  <div className="w-full h-full relative flex items-center justify-center">
+                    <img src={previewUrl} alt="Target Ingest" className="max-w-full max-h-full object-contain rounded-lg" />
+                    {isScanning && (
+                      <div className="absolute inset-x-0 bg-emerald-500/10 h-1.5 border-t-2 border-emerald-400 shadow-[0_0_15px_#22c55e] animate-scan-laser z-20"></div>
+                    )}
+                  </div>
+                )}
+
+                {/* Dropzone text */}
+                {!isCameraActive && !previewUrl && (
+                  <div onClick={() => fileInputRef.current.click()} className="space-y-3 py-6 w-full h-full flex flex-col items-center justify-center">
+                    <Upload className="w-8 h-8 text-slate-400 mx-auto" />
+                    <div className="text-xs">
+                      <span className="font-extrabold text-[#166534] underline">Upload Waste Image</span> or drag & drop here
+                    </div>
+                    <p className="text-[9px] text-[#64748B] font-semibold">JPG, JPEG, PNG or WEBP (Max 5MB)</p>
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={(e) => e.target.files[0] && selectFile(e.target.files[0])}
+                  className="hidden"
+                  accept="image/*"
+                />
+                <canvas ref={canvasRef} className="hidden"></canvas>
+              </div>
+
+              {/* Predict triggers */}
+              <div className="flex gap-2">
+                {previewUrl && (
                   <button
-                    key={item.id}
-                    onClick={() => handleTriggerScan(item)}
-                    className={`p-3 rounded-xl border text-left flex flex-col items-center justify-center space-y-2.5 transition-all bg-slate-50 hover:bg-white hover:shadow-2xs ${activeItem?.id === item.id ? 'border-[#166534] ring-2 ring-[#DCFCE7] bg-white' : 'border-slate-200'}`}
+                    disabled={isScanning}
+                    onClick={handleScanSubmit}
+                    className="flex-1 py-3 bg-[#166534] hover:bg-[#15803d] text-white font-extrabold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
                   >
-                    <img src={item.image} alt={item.name} className="w-14 h-14 object-cover rounded-lg border border-slate-100 shadow-2xs" />
-                    <span className="text-[11px] font-bold text-slate-800 text-center leading-tight">{item.name}</span>
+                    {isScanning ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        {scanStep === 1 && "Uploading waste image..."}
+                        {scanStep === 2 && "AI Vision scanning..."}
+                        {scanStep === 3 && "Generating environmental report..."}
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 text-emerald-300" /> Analyze Waste Image
+                      </>
+                    )}
                   </button>
-                ))}
+                )}
+                {previewUrl && (
+                  <button
+                    disabled={isScanning}
+                    onClick={() => { setFile(null); setPreviewUrl(null); setScanResult(null); }}
+                    className="px-4.5 py-3 border border-slate-200 text-[#64748B] hover:text-slate-800 font-extrabold text-xs rounded-xl hover:bg-slate-50 cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Right side: Scanning Simulator Box */}
-            <div className="md:col-span-7 bg-[#F7FAF7] border border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[260px] relative overflow-hidden">
+            {/* Right side: Detailed Analysis Result Card */}
+            <div className="md:col-span-5 bg-[#F7FAF7] border border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[260px] relative overflow-hidden">
               
-              {!activeItem ? (
+              {!activeItem && !previewUrl ? (
                 <div className="text-center space-y-2 text-[#64748B]">
                   <Scan className="w-12 h-12 mx-auto text-slate-300 animate-pulse" />
-                  <p className="text-xs font-bold">Select a demo waste item on the left to start scanning</p>
+                  <p className="text-xs font-bold">Select an example or upload an image to start</p>
                   <p className="text-[10px] text-slate-400">Deep learning predictions are calculated in real-time</p>
                 </div>
               ) : (
-                <div className="w-full h-full flex flex-col md:flex-row items-center gap-6">
-                  
-                  {/* Photo Display with Scanning Laser effect */}
-                  <div className="w-32 h-32 rounded-xl overflow-hidden border border-slate-200 relative shrink-0 shadow-2xs bg-white">
-                    <img src={activeItem.image} alt="Target" className="w-full h-full object-cover" />
-                    {isScanning && (
-                      <div className="absolute inset-0 bg-gradient-to-b from-[#22C55E]/0 via-[#22C55E]/40 to-[#22C55E]/0 w-full h-8 animate-scan-laser border-y border-[#22C55E]"></div>
-                    )}
-                  </div>
-
-                  {/* AI Prediction Outputs */}
-                  <div className="flex-1 space-y-3.5 w-full">
-                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                      <span className="text-xs font-bold text-[#64748B]">AI Model Output:</span>
-                      {isScanning ? (
-                        <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 flex items-center gap-1">
-                          <Loader2 className="w-3 h-3 animate-spin" /> Analyzing Image...
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3 text-emerald-500" /> Classification Complete
-                        </span>
-                      )}
-                    </div>
-
+                <div className="w-full h-full flex flex-col items-center space-y-4">
+                  <div className="w-full flex items-center justify-between border-b border-slate-200/60 pb-2">
+                    <span className="text-xs font-bold text-[#64748B]">AI Model Output:</span>
                     {isScanning ? (
-                      <div className="space-y-2 py-4">
-                        <div className="h-3.5 bg-slate-200 rounded-full w-3/4 animate-pulse"></div>
-                        <div className="h-3.5 bg-slate-200 rounded-full w-1/2 animate-pulse"></div>
-                        <div className="h-3.5 bg-slate-200 rounded-full w-2/3 animate-pulse"></div>
-                      </div>
+                      <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 flex items-center gap-1">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Analyzing...
+                      </span>
                     ) : (
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="space-y-2.5 text-xs text-slate-800"
-                      >
-                        {scanError && (
-                          <p className="text-[10px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200/60 leading-normal font-semibold">
-                            ⚠️ {scanError}
-                          </p>
-                        )}
-                        <div className="flex justify-between">
-                          <span className="text-slate-500 font-semibold">Detected Object:</span>
-                          <span className="font-extrabold text-slate-900">{activeItem.name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-500 font-semibold">Category:</span>
-                          <span className="font-extrabold text-[#166534] bg-[#DCFCE7] px-2 py-0.5 rounded-md border border-emerald-100">
-                            {scanResult ? scanResult.predictedCategory : activeItem.category}
-                          </span>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between">
-                            <span className="text-slate-500 font-semibold">Confidence:</span>
-                            <span className="font-mono font-extrabold text-emerald-600">
-                              {scanResult ? `${scanResult.confidence}%` : activeItem.confidence}
-                            </span>
-                          </div>
-                          <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                            <div 
-                              className="bg-emerald-600 h-1.5 rounded-full transition-all duration-500" 
-                              style={{ width: `${scanResult ? scanResult.confidence : parseFloat(activeItem.confidence)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-500 font-semibold">Recommended:</span>
-                          <span className="font-extrabold text-slate-900">
-                            {scanResult ? scanResult.recommendedBin : activeItem.category} Bin
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-500 font-semibold">Eco Points:</span>
-                          <span className="font-extrabold text-slate-950 flex items-center gap-1">
-                            <Award className="w-3.5 h-3.5 text-amber-500" />
-                            +{scanResult ? scanResult.ecoPoints : activeItem.points.split(' ')[0]} XP
-                          </span>
-                        </div>
-                        <div className="p-2.5 bg-[#DCFCE7]/40 rounded-lg border border-emerald-100/50 text-[10px] text-emerald-800 font-semibold">
-                          🌿 Environmental Impact: You diverted approximately 0.2kg waste from landfill
-                        </div>
-                      </motion.div>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3 text-emerald-500" /> Classification Complete
+                      </span>
                     )}
                   </div>
 
+                  {isScanning ? (
+                    <div className="space-y-3.5 py-6 w-full">
+                      <div className="h-3.5 bg-slate-200 rounded-full w-3/4 animate-pulse"></div>
+                      <div className="h-3.5 bg-slate-200 rounded-full w-1/2 animate-pulse"></div>
+                      <div className="h-3.5 bg-slate-200 rounded-full w-2/3 animate-pulse"></div>
+                    </div>
+                  ) : (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="w-full space-y-3 text-xs text-slate-800"
+                    >
+                      {scanError && (
+                        <p className="text-[10px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200/60 leading-normal font-semibold">
+                          ⚠️ {scanError}
+                        </p>
+                      )}
+                      
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-semibold">Detected Category:</span>
+                        <span className="font-extrabold text-slate-900">
+                          {scanResult ? scanResult.predictedCategory : (activeItem ? activeItem.category : "Plastic")}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500 font-semibold">Confidence:</span>
+                          <span className="font-mono font-extrabold text-emerald-600">
+                            {scanResult ? `${scanResult.confidence}%` : (activeItem ? activeItem.confidence : "95.0%")}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                          <div 
+                            className="bg-emerald-600 h-1.5 rounded-full transition-all duration-500" 
+                            style={{ width: `${scanResult ? scanResult.confidence : (activeItem ? parseFloat(activeItem.confidence) : 95.0)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-semibold">Material:</span>
+                        <span className="font-extrabold text-slate-900">
+                          {scanResult ? scanResult.materialType : (activeItem ? (activeItem.id === 'laptop' ? 'Silicon / PCB' : activeItem.id === 'sodacan' ? 'Aluminium' : activeItem.id === 'apple' ? 'Organic scraps' : 'PET Plastic') : "PET Plastic")}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-semibold">Waste Condition:</span>
+                        <span className="font-extrabold text-amber-700">
+                          {scanResult ? scanResult.conditionStatus : "Clean / Recyclable"}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-semibold">Recommended action:</span>
+                        <span className="font-extrabold text-slate-900 text-right max-w-[180px] truncate">
+                          {scanResult ? scanResult.recommendedBin : (activeItem ? activeItem.category : "Blue Bin")} Bin
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between border-t border-slate-200/60 pt-2">
+                        <span className="text-slate-500 font-semibold">Eco Points:</span>
+                        <span className="font-extrabold text-slate-950 flex items-center gap-1">
+                          <Award className="w-3.5 h-3.5 text-amber-500" />
+                          +{scanResult ? scanResult.ecoPoints : (activeItem ? activeItem.points.split(' ')[0] : "10")} XP
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 bg-[#DCFCE7]/40 rounded-lg border border-emerald-100/50 text-[10px] text-emerald-800 font-semibold text-center mt-1">
+                        🌿 Environmental Impact: You diverted approximately 0.2kg waste from landfill
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
               )}
 
             </div>
 
           </div>
+
+          {/* Sandbox Examples list */}
+          <div className="border-t border-slate-100 pt-6 space-y-3">
+            <span className="text-xs font-bold text-[#64748B] block">Try Examples (Quick Load Sandbox)</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {exampleItems.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => loadExample(item)}
+                  className={`p-2.5 rounded-xl border text-left flex items-center gap-2 bg-slate-50 hover:bg-white hover:shadow-2xs transition-all ${activeItem?.id === item.id ? 'border-[#166534] ring-1 ring-[#DCFCE7]' : 'border-slate-200'}`}
+                >
+                  <img src={item.image} alt={item.name} className="w-9 h-9 object-cover rounded border border-slate-100" />
+                  <span className="text-[10px] font-bold text-slate-800 truncate leading-tight">{item.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -480,7 +721,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Demo Access Overlay Modal */}
+      {/* Demo Access Modal */}
       <AnimatePresence>
         {showDemoModal && (
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">

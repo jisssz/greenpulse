@@ -69,7 +69,7 @@ public class WasteClassificationController {
         }
     }
 
-    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".jpg", ".jpeg", ".png");
+    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".jpg", ".jpeg", ".png", ".webp");
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     @PostMapping("/classify")
@@ -151,6 +151,8 @@ public class WasteClassificationController {
             Double confidence = Double.valueOf(aiResponse.get("confidence").toString());
             Boolean recyclable = (Boolean) aiResponse.get("recyclable");
             String recommendedBin = (String) aiResponse.get("recommended_bin");
+            String condition = (String) aiResponse.get("condition");
+            String materialType = (String) aiResponse.get("material_type");
 
             // Calculate eco points points logic
             int points = 10; // default
@@ -170,6 +172,8 @@ public class WasteClassificationController {
             prediction.setConfidence(confidence);
             prediction.setRecyclable(recyclable);
             prediction.setRecommendedBin(recommendedBin);
+            prediction.setConditionStatus(condition != null ? condition : "Recyclable");
+            prediction.setMaterialType(materialType != null ? materialType : "Mixed Material");
             
             // Confidence handling threshold
             if (confidence >= 85.0) {
@@ -308,24 +312,45 @@ public class WasteClassificationController {
         if ("Hazardous Waste".equalsIgnoreCase(category)) {
             result.put("recyclable", false);
             result.put("recommended_bin", "Special Hazmat Dropoff");
+            result.put("material_type", "Toxic Chemical Compounds");
+            result.put("condition", "Hazardous");
+            result.put("recommended_action", "Dispose at authorized hazardous waste center.");
         } else if ("Electronic Waste".equalsIgnoreCase(category)) {
             result.put("recyclable", true);
             result.put("recommended_bin", "E-Waste Bin");
+            result.put("material_type", "Electronic Circuitry / PCB");
+            result.put("condition", "E-Waste / Recycle");
+            result.put("recommended_action", "Deliver to certified e-waste dropoff counter.");
         } else if ("Metal".equalsIgnoreCase(category)) {
             result.put("recyclable", true);
             result.put("recommended_bin", "Red Bin");
+            result.put("material_type", "Aluminium / Steel");
+            result.put("condition", "Crushed / Clean");
+            result.put("recommended_action", "Rinse, flatten, and discard in the Red receptacle.");
         } else if ("Glass".equalsIgnoreCase(category)) {
             result.put("recyclable", true);
             result.put("recommended_bin", "Yellow Bin");
+            result.put("material_type", "Glass Container");
+            result.put("condition", "Intact / Clean");
+            result.put("recommended_action", "Clean, rinse, and place in the Yellow bin.");
         } else if ("Organic Waste".equalsIgnoreCase(category)) {
             result.put("recyclable", true);
             result.put("recommended_bin", "Compost Bin");
+            result.put("material_type", "Bio-degradable Organic Matter");
+            result.put("condition", "Organic Compostable");
+            result.put("recommended_action", "Deposit peels, scraps, and trimmings directly into composting.");
         } else if ("Paper".equalsIgnoreCase(category)) {
             result.put("recyclable", true);
             result.put("recommended_bin", "Green Bin");
+            result.put("material_type", "Cellulose Paperboard");
+            result.put("condition", "Dry / Clean");
+            result.put("recommended_action", "Ensure paper products are dry and flat before throwing in the Green bin.");
         } else {
             result.put("recyclable", true);
             result.put("recommended_bin", "Blue Bin");
+            result.put("material_type", "PET Plastic");
+            result.put("condition", "Empty / Clean");
+            result.put("recommended_action", "Rinse thoroughly and place in the Blue plastic bin.");
         }
         
         return result;

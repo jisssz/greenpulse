@@ -21,7 +21,9 @@ public class WasteClassificationTest {
             true,
             "Blue Bin",
             25,
-            "AUTO_APPROVED"
+            "AUTO_APPROVED",
+            "Recyclable",
+            "PET Plastic"
         );
 
         assertEquals(1L, prediction.getId());
@@ -44,5 +46,11 @@ public class WasteClassificationTest {
         assertEquals("AUTO_APPROVED", prediction.getStatus());
         prediction.setStatus("PENDING_VERIFICATION");
         assertEquals("PENDING_VERIFICATION", prediction.getStatus());
+
+        assertEquals("Recyclable", prediction.getConditionStatus());
+        assertEquals("PET Plastic", prediction.getMaterialType());
+        
+        prediction.setConditionStatus("Damaged");
+        assertEquals("Damaged", prediction.getConditionStatus());
     }
 }
