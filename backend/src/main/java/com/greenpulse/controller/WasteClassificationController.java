@@ -60,6 +60,7 @@ public class WasteClassificationController {
                 "recyclable BOOLEAN NOT NULL," +
                 "recommended_bin VARCHAR(100) NOT NULL," +
                 "eco_points INT NOT NULL DEFAULT 10," +
+                "status VARCHAR(30) NOT NULL DEFAULT 'AUTO_APPROVED'," +
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ")");
             System.out.println("waste_predictions table auto-initialized successfully.");
@@ -169,18 +170,36 @@ public class WasteClassificationController {
             prediction.setConfidence(confidence);
             prediction.setRecyclable(recyclable);
             prediction.setRecommendedBin(recommendedBin);
-            prediction.setEcoPoints(points);
+            
+            // Confidence handling threshold
+            if (confidence >= 85.0) {
+                prediction.setStatus("AUTO_APPROVED");
+                prediction.setEcoPoints(points);
+            } else {
+                prediction.setStatus("PENDING_VERIFICATION");
+                prediction.setEcoPoints(0);
+            }
+            
             prediction.setCreatedAt(LocalDateTime.now());
 
             WastePrediction saved = predictionRepository.save(prediction);
 
             // 5. Send real notification to Citizen
-            notificationService.createNotification(
-                user.getId(),
-                "AI Classification Success! 🌱",
-                "Successfully classified item as " + category + " (" + confidence + "% confidence). Earned +" + points + " Eco Points!",
-                "REWARD"
-            );
+            if (confidence >= 85.0) {
+                notificationService.createNotification(
+                    user.getId(),
+                    "AI Classification Success! 🌱",
+                    "Successfully classified item as " + category + " (" + confidence + "% confidence). Earned +" + points + " Eco Points!",
+                    "REWARD"
+                );
+            } else {
+                notificationService.createNotification(
+                    user.getId(),
+                    "AI Classification Pending ⚠️",
+                    "AI confidence is low (" + confidence + "%). Item submitted to municipal desk for validation.",
+                    "INFO"
+                );
+            }
 
             return ResponseEntity.ok(ApiResponse.success("Waste classified successfully", saved));
 

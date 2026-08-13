@@ -211,6 +211,7 @@ CREATE TABLE IF NOT EXISTS waste_predictions (
     recyclable BOOLEAN NOT NULL,
     recommended_bin VARCHAR(100) NOT NULL,
     eco_points INT NOT NULL DEFAULT 10,
+    status VARCHAR(30) NOT NULL DEFAULT 'AUTO_APPROVED',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

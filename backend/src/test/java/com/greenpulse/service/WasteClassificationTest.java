@@ -20,7 +20,8 @@ public class WasteClassificationTest {
             96.4,
             true,
             "Blue Bin",
-            25
+            25,
+            "AUTO_APPROVED"
         );
 
         assertEquals(1L, prediction.getId());
@@ -39,5 +40,9 @@ public class WasteClassificationTest {
         
         prediction.setPredictedCategory("Electronic Waste");
         assertEquals("Electronic Waste", prediction.getPredictedCategory());
+
+        assertEquals("AUTO_APPROVED", prediction.getStatus());
+        prediction.setStatus("PENDING_VERIFICATION");
+        assertEquals("PENDING_VERIFICATION", prediction.getStatus());
     }
 }

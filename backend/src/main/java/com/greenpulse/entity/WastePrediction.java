@@ -33,12 +33,15 @@ public class WastePrediction {
     @Column(name = "eco_points", nullable = false)
     private Integer ecoPoints = 10;
 
+    @Column(nullable = false, length = 30)
+    private String status = "AUTO_APPROVED";
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public WastePrediction() {}
 
-    public WastePrediction(Long id, User user, String imageUrl, String predictedCategory, Double confidence, Boolean recyclable, String recommendedBin, Integer ecoPoints) {
+    public WastePrediction(Long id, User user, String imageUrl, String predictedCategory, Double confidence, Boolean recyclable, String recommendedBin, Integer ecoPoints, String status) {
         this.id = id;
         this.user = user;
         this.imageUrl = imageUrl;
@@ -47,6 +50,7 @@ public class WastePrediction {
         this.recyclable = recyclable;
         this.recommendedBin = recommendedBin;
         this.ecoPoints = ecoPoints;
+        this.status = status;
     }
 
     public Long getId() { return id; }
@@ -72,6 +76,9 @@ public class WastePrediction {
 
     public Integer getEcoPoints() { return ecoPoints; }
     public void setEcoPoints(Integer ecoPoints) { this.ecoPoints = ecoPoints; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

@@ -41,3 +41,10 @@ uploads/*
 storage/*
 h2-data/
 *.db
+
+# Python virtual environments
+venv/
+.venv/
+__pycache__/
+*.pyc
+

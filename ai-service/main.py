@@ -59,8 +59,8 @@ def load_classification_model():
 def health_check():
     return {
         "status": "UP",
-        "service": "GreenPulse ML Classifier",
-        "model_loaded": model is not None
+        "modelLoaded": model is not None,
+        "model": "MobileNetV2"
     }
 
 @app.post("/predict-waste")
