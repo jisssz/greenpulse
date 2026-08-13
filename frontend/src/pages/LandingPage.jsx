@@ -523,9 +523,20 @@ const LandingPage = () => {
                         <Loader2 className="w-3 h-3 animate-spin" /> Analyzing...
                       </span>
                     ) : (
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-emerald-500" /> Classification Complete
-                      </span>
+                      <div className="flex gap-1.5 items-center">
+                        {((scanResult ? scanResult.confidence : (activeItem ? parseFloat(activeItem.confidence) : 95.0)) >= 85) ? (
+                          <span className="text-[9px] font-bold bg-[#DCFCE7] text-[#166534] border border-emerald-250 px-2 py-0.5 rounded flex items-center gap-0.5">
+                            AI Verified
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded flex items-center gap-0.5">
+                            Needs Human Verification
+                          </span>
+                        )}
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3 text-emerald-500" /> Complete
+                        </span>
+                      </div>
                     )}
                   </div>
 

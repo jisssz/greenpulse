@@ -297,6 +297,65 @@ public class WasteClassificationController {
         return ResponseEntity.ok(ApiResponse.success("AI Environmental Intelligence calculated", intelligence));
     }
 
+    @GetMapping("/review-queue")
+    public ResponseEntity<ApiResponse<List<WastePrediction>>> getReviewQueue() {
+        List<WastePrediction> list = predictionRepository.findByStatus("PENDING_VERIFICATION");
+        return ResponseEntity.ok(ApiResponse.success("AI review queue fetched", list));
+    }
+
+    @PostMapping("/review/{id}/action")
+    public ResponseEntity<ApiResponse<WastePrediction>> reviewPrediction(
+            @PathVariable("id") Long id,
+            @RequestParam("action") String action,
+            @RequestParam(value = "category", required = false) String correctedCategory) {
+        
+        WastePrediction prediction = predictionRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Prediction record not found"));
+
+        if (!"PENDING_VERIFICATION".equals(prediction.getStatus())) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Prediction is already processed."));
+        }
+
+        if ("APPROVE".equalsIgnoreCase(action)) {
+            prediction.setStatus("AUTO_APPROVED");
+            if (correctedCategory != null && !correctedCategory.isBlank()) {
+                prediction.setPredictedCategory(correctedCategory);
+            }
+            
+            // Recalculate and award points to citizen user
+            int points = 10;
+            String cat = prediction.getPredictedCategory();
+            if ("Plastic".equalsIgnoreCase(cat)) points = 10;
+            else if ("Metal".equalsIgnoreCase(cat)) points = 20;
+            else if ("Electronic Waste".equalsIgnoreCase(cat)) points = 50;
+            else if ("Hazardous Waste".equalsIgnoreCase(cat)) points = 40;
+            else if ("Paper".equalsIgnoreCase(cat)) points = 10;
+            else if ("Glass".equalsIgnoreCase(cat)) points = 15;
+            else if ("Organic Waste".equalsIgnoreCase(cat)) points = 10;
+
+            prediction.setEcoPoints(points);
+            
+            notificationService.createNotification(
+                prediction.getUser().getId(),
+                "AI Prediction Approved! 🌱",
+                "Your submitted waste item has been verified as " + prediction.getPredictedCategory() + ". Earned +" + points + " Eco Points!",
+                "REWARD"
+            );
+        } else {
+            prediction.setStatus("REJECTED");
+            prediction.setEcoPoints(0);
+            notificationService.createNotification(
+                prediction.getUser().getId(),
+                "AI Prediction Rejected ❌",
+                "Your waste submission was reviewed and rejected by the authority desk.",
+                "INFO"
+            );
+        }
+
+        WastePrediction saved = predictionRepository.save(prediction);
+        return ResponseEntity.ok(ApiResponse.success("AI prediction reviewed successfully", saved));
+    }
+
     private Map<String, Object> getMockAiPrediction(String filename) {
         // Fallback method which outputs dynamic, non-hardcoded classification outcomes
         Map<String, Object> result = new HashMap<>();

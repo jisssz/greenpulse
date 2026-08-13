@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/moderator/**").hasAnyRole("MODERATOR", "ADMIN")
                 .requestMatchers("/api/field-worker/**").hasAnyRole("FIELD_WORKER", "ADMIN")
                 .requestMatchers("/api/authority/**").hasAnyRole("AUTHORITY_OFFICER", "ADMIN")
+                .requestMatchers("/api/ai/review-queue", "/api/ai/review/**").hasAnyRole("AUTHORITY_OFFICER", "ADMIN")
                 .requestMatchers("/api/enforcement/**").authenticated()
                 .requestMatchers("/api/fines/**").authenticated()
                 .requestMatchers("/api/evidence/**").authenticated()

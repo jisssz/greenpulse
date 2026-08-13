@@ -10,4 +10,5 @@ import java.util.List;
 public interface WastePredictionRepository extends JpaRepository<WastePrediction, Long> {
     List<WastePrediction> findByUserIdOrderByCreatedAtDesc(Long userId);
     List<WastePrediction> findByUserId(Long userId);
+    List<WastePrediction> findByStatus(String status);
 }

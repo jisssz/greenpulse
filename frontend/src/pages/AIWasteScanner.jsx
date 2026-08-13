@@ -415,9 +415,15 @@ const AIWasteScanner = () => {
               >
                 <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                   <h3 className="font-extrabold text-slate-900 text-sm">AI Analysis Result 🌱</h3>
-                  <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-[#DCFCE7] text-[#166534] rounded-full">
-                    {prediction.status === 'AUTO_APPROVED' ? 'Approved' : 'Triage Queue'}
-                  </span>
+                  {prediction.confidence >= 85 ? (
+                    <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-[#DCFCE7] text-[#166534] rounded-full flex items-center gap-0.5 border border-emerald-250">
+                      AI Verified
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 rounded-full flex items-center gap-0.5 border border-amber-200">
+                      Needs Human Verification
+                    </span>
+                  )}
                 </div>
 
                 <div className="space-y-4.5">
