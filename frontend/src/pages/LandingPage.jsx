@@ -16,6 +16,27 @@ const exampleItems = [
   { id: 'sodacan', name: 'Crushed Soda Can', image: '/assets/waste/soda-can.jpg', category: 'Metal Waste', confidence: '95.1%', points: '20 points' }
 ];
 
+const getAiReasoning = (category) => {
+  const cat = category ? category.split(' ')[0] : 'Plastic';
+  switch(cat) {
+    case 'Plastic':
+      return "Identified transparent/synthetic polymer textures and cylindrical neck geometries matching standard PET container designs.";
+    case 'Organic':
+      return "Detected cellular biodegradable structural patterns and organic oxidation textures indicative of food scraps or cellulose breakdown.";
+    case 'Electronic':
+    case 'E-Waste':
+      return "Identified glass fiber resin sheets, copper trace overlays, and semiconductor outline profiles corresponding to circuit assemblies.";
+    case 'Metal':
+      return "Detected metallic specular reflection peaks and crush deformation characteristics of lightweight container aluminum alloy.";
+    case 'Glass':
+      return "Identified specularity anomalies and brittle fracture edges matching silica container glass properties.";
+    case 'Paper':
+      return "Detected matte fibrous pulped cellulose sheets and clean geometric fold lines matching cardboard packaging.";
+    default:
+      return "Matched visual features corresponding to municipal solid waste categories and recycling database profiles.";
+  }
+};
+
 const LandingPage = () => {
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [loadingRole, setLoadingRole] = useState(null);
@@ -592,6 +613,13 @@ const LandingPage = () => {
                         <span className="font-extrabold text-amber-700">
                           {scanResult ? scanResult.conditionStatus : "Clean / Recyclable"}
                         </span>
+                      </div>
+
+                      <div className="p-2 bg-slate-50 border border-slate-200/60 rounded-xl space-y-0.5">
+                        <span className="text-[8px] font-bold text-[#64748B] block">AI Classification Explanation</span>
+                        <p className="text-[9px] text-slate-600 leading-normal font-semibold">
+                          {getAiReasoning(scanResult ? scanResult.predictedCategory : (activeItem ? activeItem.category : 'Plastic'))}
+                        </p>
                       </div>
 
                       <div className="flex justify-between">

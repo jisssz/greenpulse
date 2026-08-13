@@ -317,7 +317,7 @@ public class WasteClassificationController {
         }
 
         if ("APPROVE".equalsIgnoreCase(action)) {
-            prediction.setStatus("AUTO_APPROVED");
+            prediction.setStatus("APPROVED");
             if (correctedCategory != null && !correctedCategory.isBlank()) {
                 prediction.setPredictedCategory(correctedCategory);
             }

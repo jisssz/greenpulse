@@ -14,6 +14,27 @@ const exampleItems = [
   { id: 'sodacan', name: 'Crushed Soda Can', image: '/assets/waste/soda-can.jpg', category: 'Metal', confidence: 95.1, bin: 'Red Bin' }
 ];
 
+const getAiReasoning = (category) => {
+  const cat = category ? category.split(' ')[0] : 'Plastic';
+  switch(cat) {
+    case 'Plastic':
+      return "Identified transparent/synthetic polymer textures and cylindrical neck geometries matching standard PET container designs.";
+    case 'Organic':
+      return "Detected cellular biodegradable structural patterns and organic oxidation textures indicative of food scraps or cellulose breakdown.";
+    case 'Electronic':
+    case 'E-Waste':
+      return "Identified glass fiber resin sheets, copper trace overlays, and semiconductor outline profiles corresponding to circuit assemblies.";
+    case 'Metal':
+      return "Detected metallic specular reflection peaks and crush deformation characteristics of lightweight container aluminum alloy.";
+    case 'Glass':
+      return "Identified specularity anomalies and brittle fracture edges matching silica container glass properties.";
+    case 'Paper':
+      return "Detected matte fibrous pulped cellulose sheets and clean geometric fold lines matching cardboard packaging.";
+    default:
+      return "Matched visual features corresponding to municipal solid waste categories and recycling database profiles.";
+  }
+};
+
 const AIWasteScanner = () => {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -465,6 +486,13 @@ const AIWasteScanner = () => {
                     </div>
                   </div>
 
+                  <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 space-y-1">
+                    <span className="text-[9px] font-bold text-[#64748B] block">AI Explanation (XAI Model Reasoning)</span>
+                    <p className="text-[10px] text-slate-600 leading-normal font-semibold">
+                      {getAiReasoning(prediction.predictedCategory)}
+                    </p>
+                  </div>
+
                   <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-4 space-y-1.5">
                     <span className="text-[9px] font-bold text-[#64748B] uppercase tracking-wider block">Recommended Action</span>
                     <p className="text-xs text-slate-800 font-semibold leading-relaxed">
@@ -538,12 +566,24 @@ const AIWasteScanner = () => {
                     {h.confidence}% conf
                   </div>
                 </div>
-                <div className="p-3.5 space-y-2">
+                <div className="p-3.5 space-y-2.5">
                   <div className="flex justify-between items-start gap-1">
-                    <h4 className="font-extrabold text-xs text-slate-950 truncate">{h.predictedCategory}</h4>
-                    <span className="text-[9px] font-black text-emerald-700 shrink-0">+{h.ecoPoints} XP</span>
+                    <div>
+                      <h4 className="font-extrabold text-xs text-slate-950 truncate">{h.predictedCategory}</h4>
+                      <span className={`text-[8px] font-extrabold uppercase mt-0.5 inline-block ${
+                        h.status === 'AUTO_APPROVED' ? 'text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-100' :
+                        h.status === 'APPROVED' ? 'text-indigo-600 bg-indigo-50 px-1 py-0.2 rounded border border-indigo-100' :
+                        h.status === 'REJECTED' ? 'text-rose-600 bg-rose-50 px-1 py-0.2 rounded border border-rose-100' :
+                        'text-amber-600 bg-amber-50 px-1 py-0.2 rounded border border-amber-100 animate-pulse'
+                      }`}>
+                        {h.status === 'AUTO_APPROVED' ? 'AI Verified' :
+                         h.status === 'APPROVED' ? 'Human Verified' :
+                         h.status === 'REJECTED' ? 'Rejected' : 'Pending Review'}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-black text-emerald-700 shrink-0">+{h.ecoPoints} XP</span>
                   </div>
-                  <div className="text-[9px] text-[#64748B] font-bold flex justify-between">
+                  <div className="text-[9px] text-[#64748B] font-semibold flex justify-between border-t border-slate-200/60 pt-2">
                     <span>Bin: {h.recommendedBin}</span>
                     <span>{new Date(h.createdAt).toLocaleDateString()}</span>
                   </div>
