@@ -487,7 +487,7 @@ const AIWasteScanner = () => {
                   </div>
 
                   <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 space-y-1">
-                    <span className="text-[9px] font-bold text-[#64748B] block">AI Explanation (XAI Model Reasoning)</span>
+                    <span className="text-[9px] font-bold text-[#64748B] block">AI Classification Reasoning</span>
                     <p className="text-[10px] text-slate-600 leading-normal font-semibold">
                       {getAiReasoning(prediction.predictedCategory)}
                     </p>

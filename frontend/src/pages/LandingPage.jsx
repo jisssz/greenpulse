@@ -616,7 +616,7 @@ const LandingPage = () => {
                       </div>
 
                       <div className="p-2 bg-slate-50 border border-slate-200/60 rounded-xl space-y-0.5">
-                        <span className="text-[8px] font-bold text-[#64748B] block">AI Classification Explanation</span>
+                        <span className="text-[8px] font-bold text-[#64748B] block">AI Classification Reasoning</span>
                         <p className="text-[9px] text-slate-600 leading-normal font-semibold">
                           {getAiReasoning(scanResult ? scanResult.predictedCategory : (activeItem ? activeItem.category : 'Plastic'))}
                         </p>
