@@ -73,7 +73,10 @@ public class WasteClassificationController {
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ")");
             
-            // Safely alter table to add columns supporting new visual features if they do not exist
+            // Safely alter table to add columns that may be missing from the original schema
+            try {
+                jdbcTemplate.execute("ALTER TABLE waste_predictions ADD COLUMN status VARCHAR(30) NOT NULL DEFAULT 'AUTO_APPROVED'");
+            } catch (Exception ignored) {}
             try {
                 jdbcTemplate.execute("ALTER TABLE waste_predictions ADD COLUMN condition_status VARCHAR(100)");
             } catch (Exception ignored) {}
