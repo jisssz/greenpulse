@@ -14,7 +14,7 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         value: https://frontend-nine-woad-g8xvq6ys3s.vercel.app
       - key: GREENPULSE_AI_SERVICE_URL
-        value: https://greenpulse-ai-service.onrender.com
+        value: http://greenpulse-ai-service:8000
       - key: CLOUDINARY_URL
         sync: false
       - key: DB_URL

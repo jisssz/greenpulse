@@ -21,4 +21,22 @@ public class HealthController {
         );
         return ResponseEntity.ok(ApiResponse.success("Service is healthy", status));
     }
+
+    @GetMapping("/test-ai")
+    public ResponseEntity<?> testAiConnection(@org.springframework.web.bind.annotation.RequestParam("url") String url) {
+        try {
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            return ResponseEntity.ok(Map.of(
+                "url", url,
+                "status", response.getStatusCode().toString(),
+                "body", response.getBody() != null ? response.getBody() : "empty"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "url", url,
+                "error", e.getMessage() != null ? e.getMessage() : "unknown error"
+            ));
+        }
+    }
 }
