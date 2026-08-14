@@ -12,6 +12,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -20,9 +21,14 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.annotation.PostConstruct;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestClientException;
 
 @RestController
 @RequestMapping("/api/ai")
@@ -45,7 +51,10 @@ public class WasteClassificationController {
         this.cloudinaryService = cloudinaryService;
         this.notificationService = notificationService;
         this.jdbcTemplate = jdbcTemplate;
-        this.restTemplate = new RestTemplate();
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(5_000);
+        requestFactory.setReadTimeout(25_000);
+        this.restTemplate = new RestTemplate(requestFactory);
     }
 
     @PostConstruct
@@ -73,7 +82,8 @@ public class WasteClassificationController {
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     @PostMapping("/classify")
-    public ResponseEntity<ApiResponse<WastePrediction>> classifyWaste(
+    @PreAuthorize("hasAnyRole('CITIZEN', 'ADMIN')")
+    public ResponseEntity<?> classifyWaste(
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
@@ -103,24 +113,27 @@ public class WasteClassificationController {
             return ResponseEntity.badRequest().body(ApiResponse.error("Only image formats (JPG, JPEG, PNG) are allowed"));
         }
 
-        // Detect executables / non-image files by checking basic magic bytes or headers if necessary
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Invalid content type. Only image files are allowed."));
         }
 
         try {
-            // 2. Upload image to Cloudinary (with local disk fallback)
-            String imageUrl = cloudinaryService.uploadFile(file);
+            byte[] imageBytes = file.getBytes();
+            if (!isRecognizedImage(imageBytes)) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("The uploaded file is not a readable image."));
+            }
 
-            // 3. Send image to FastAPI microservice for ML prediction
+            // 2. Send the original bytes to the ML service before creating any
+            // stored record. A failed AI request must not create an orphaned
+            // upload or a fabricated prediction.
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             
             // Wrap file bytes in a Resource to send via RestTemplate
-            ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+            ByteArrayResource fileResource = new ByteArrayResource(imageBytes) {
                 @Override
                 public String getFilename() {
                     return originalFilename;
@@ -131,28 +144,38 @@ public class WasteClassificationController {
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
             String targetUrl = aiServiceUrl + "/predict-waste";
 
-            Map<String, Object> aiResponse = null;
+            Map<String, Object> aiResponse;
             try {
                 ResponseEntity<Map> response = restTemplate.postForEntity(targetUrl, requestEntity, Map.class);
                 if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                     aiResponse = (Map<String, Object>) response.getBody();
+                } else {
+                    return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                        .body(ApiResponse.error("AI service returned no classification. Please try again shortly."));
                 }
-            } catch (Exception e) {
-                System.err.println("FastAPI AI microservice unavailable, calling local fallback: " + e.getMessage());
-            }
-
-            // Fallback prediction if ML microservice is offline
-            if (aiResponse == null) {
-                aiResponse = getMockAiPrediction(originalFilename);
+            } catch (RestClientException e) {
+                System.err.println("FastAPI AI microservice unavailable: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(ApiResponse.error("AI service is temporarily unavailable. No scan was saved; please try again shortly."));
             }
 
             // Extract prediction attributes
             String category = (String) aiResponse.get("category");
             Double confidence = Double.valueOf(aiResponse.get("confidence").toString());
-            Boolean recyclable = (Boolean) aiResponse.get("recyclable");
+            Boolean recyclable = Boolean.valueOf(String.valueOf(aiResponse.get("recyclable")));
             String recommendedBin = (String) aiResponse.get("recommended_bin");
             String condition = (String) aiResponse.get("condition");
             String materialType = (String) aiResponse.get("material_type");
+            boolean requiresHumanReview = Boolean.parseBoolean(String.valueOf(aiResponse.get("requires_human_review")));
+            String modelQualityStatus = String.valueOf(aiResponse.getOrDefault("model_quality_status", "UNKNOWN"));
+
+            if (category == null || recommendedBin == null) {
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(ApiResponse.error("AI service returned an incomplete classification. No scan was saved."));
+            }
+
+            // 3. Persist the image only after a usable classification arrives.
+            String imageUrl = cloudinaryService.uploadFile(file);
 
             // Calculate eco points points logic
             int points = 10; // default
@@ -176,7 +199,7 @@ public class WasteClassificationController {
             prediction.setMaterialType(materialType != null ? materialType : "Mixed Material");
             
             // Confidence handling threshold
-            if (confidence >= 85.0) {
+            if (!requiresHumanReview && confidence >= 85.0) {
                 prediction.setStatus("AUTO_APPROVED");
                 prediction.setEcoPoints(points);
             } else {
@@ -189,7 +212,7 @@ public class WasteClassificationController {
             WastePrediction saved = predictionRepository.save(prediction);
 
             // 5. Send real notification to Citizen
-            if (confidence >= 85.0) {
+            if ("AUTO_APPROVED".equals(prediction.getStatus())) {
                 notificationService.createNotification(
                     user.getId(),
                     "AI Classification Success! 🌱",
@@ -200,12 +223,37 @@ public class WasteClassificationController {
                 notificationService.createNotification(
                     user.getId(),
                     "AI Classification Pending ⚠️",
-                    "AI confidence is low (" + confidence + "%). Item submitted to municipal desk for validation.",
+                    requiresHumanReview
+                        ? "This model is currently in supervised QA. Your item was submitted to the municipal desk for validation."
+                        : "AI confidence is low (" + confidence + "%). Item submitted to municipal desk for validation.",
                     "INFO"
                 );
             }
 
-            return ResponseEntity.ok(ApiResponse.success("Waste classified successfully", saved));
+            // 6. Build enriched response with Grad-CAM heatmap if available
+            Map<String, Object> responseData = new java.util.LinkedHashMap<>();
+            responseData.put("id", saved.getId());
+            responseData.put("imageUrl", saved.getImageUrl());
+            responseData.put("predictedCategory", saved.getPredictedCategory());
+            responseData.put("confidence", saved.getConfidence());
+            responseData.put("recyclable", saved.getRecyclable());
+            responseData.put("recommendedBin", saved.getRecommendedBin());
+            responseData.put("conditionStatus", saved.getConditionStatus());
+            responseData.put("materialType", saved.getMaterialType());
+            responseData.put("ecoPoints", saved.getEcoPoints());
+            responseData.put("status", saved.getStatus());
+            responseData.put("createdAt", saved.getCreatedAt());
+            responseData.put("modelQualityStatus", modelQualityStatus);
+            responseData.put("requiresHumanReview", requiresHumanReview);
+            // Pass through Grad-CAM heatmap from AI service (not stored in DB)
+            if (aiResponse != null && aiResponse.containsKey("grad_cam_heatmap")) {
+                responseData.put("gradCamHeatmap", aiResponse.get("grad_cam_heatmap"));
+            }
+            if (aiResponse != null && aiResponse.get("recommended_action") != null) {
+                responseData.put("recommendedAction", aiResponse.get("recommended_action"));
+            }
+
+            return ResponseEntity.ok(ApiResponse.<Map<String, Object>>success("Waste classified successfully", responseData));
 
         } catch (IOException e) {
             return ResponseEntity.status(500).body(ApiResponse.error("Failed to read image bytes: " + e.getMessage()));
@@ -215,6 +263,7 @@ public class WasteClassificationController {
     }
 
     @GetMapping("/history")
+    @PreAuthorize("hasAnyRole('CITIZEN', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<WastePrediction>>> getPredictionHistory(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
@@ -223,6 +272,7 @@ public class WasteClassificationController {
     }
 
     @GetMapping("/stats")
+    @PreAuthorize("hasAnyRole('CITIZEN', 'ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getRecyclingStats(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
@@ -260,6 +310,7 @@ public class WasteClassificationController {
     }
 
     @GetMapping("/intelligence")
+    @PreAuthorize("hasAnyRole('AUTHORITY_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getAIIntelligence(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         // Authority intelligence endpoint
@@ -298,12 +349,14 @@ public class WasteClassificationController {
     }
 
     @GetMapping("/review-queue")
+    @PreAuthorize("hasAnyRole('AUTHORITY_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<WastePrediction>>> getReviewQueue() {
         List<WastePrediction> list = predictionRepository.findByStatus("PENDING_VERIFICATION");
         return ResponseEntity.ok(ApiResponse.success("AI review queue fetched", list));
     }
 
     @PostMapping("/review/{id}/action")
+    @PreAuthorize("hasAnyRole('AUTHORITY_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<WastePrediction>> reviewPrediction(
             @PathVariable("id") Long id,
             @RequestParam("action") String action,
@@ -356,62 +409,18 @@ public class WasteClassificationController {
         return ResponseEntity.ok(ApiResponse.success("AI prediction reviewed successfully", saved));
     }
 
-    private Map<String, Object> getMockAiPrediction(String filename) {
-        // Fallback method which outputs dynamic, non-hardcoded classification outcomes
-        Map<String, Object> result = new HashMap<>();
-        int hash = Math.abs(filename.hashCode());
-        String[] cats = {"Plastic", "Paper", "Glass", "Metal", "Organic Waste", "Electronic Waste", "Hazardous Waste"};
-        String category = cats[hash % cats.length];
-        
-        double confidence = 82.0 + (hash % 17);
-        
-        result.put("category", category);
-        result.put("confidence", confidence);
-        
-        if ("Hazardous Waste".equalsIgnoreCase(category)) {
-            result.put("recyclable", false);
-            result.put("recommended_bin", "Special Hazmat Dropoff");
-            result.put("material_type", "Toxic Chemical Compounds");
-            result.put("condition", "Hazardous");
-            result.put("recommended_action", "Dispose at authorized hazardous waste center.");
-        } else if ("Electronic Waste".equalsIgnoreCase(category)) {
-            result.put("recyclable", true);
-            result.put("recommended_bin", "E-Waste Bin");
-            result.put("material_type", "Electronic Circuitry / PCB");
-            result.put("condition", "E-Waste / Recycle");
-            result.put("recommended_action", "Deliver to certified e-waste dropoff counter.");
-        } else if ("Metal".equalsIgnoreCase(category)) {
-            result.put("recyclable", true);
-            result.put("recommended_bin", "Red Bin");
-            result.put("material_type", "Aluminium / Steel");
-            result.put("condition", "Crushed / Clean");
-            result.put("recommended_action", "Rinse, flatten, and discard in the Red receptacle.");
-        } else if ("Glass".equalsIgnoreCase(category)) {
-            result.put("recyclable", true);
-            result.put("recommended_bin", "Yellow Bin");
-            result.put("material_type", "Glass Container");
-            result.put("condition", "Intact / Clean");
-            result.put("recommended_action", "Clean, rinse, and place in the Yellow bin.");
-        } else if ("Organic Waste".equalsIgnoreCase(category)) {
-            result.put("recyclable", true);
-            result.put("recommended_bin", "Compost Bin");
-            result.put("material_type", "Bio-degradable Organic Matter");
-            result.put("condition", "Organic Compostable");
-            result.put("recommended_action", "Deposit peels, scraps, and trimmings directly into composting.");
-        } else if ("Paper".equalsIgnoreCase(category)) {
-            result.put("recyclable", true);
-            result.put("recommended_bin", "Green Bin");
-            result.put("material_type", "Cellulose Paperboard");
-            result.put("condition", "Dry / Clean");
-            result.put("recommended_action", "Ensure paper products are dry and flat before throwing in the Green bin.");
-        } else {
-            result.put("recyclable", true);
-            result.put("recommended_bin", "Blue Bin");
-            result.put("material_type", "PET Plastic");
-            result.put("condition", "Empty / Clean");
-            result.put("recommended_action", "Rinse thoroughly and place in the Blue plastic bin.");
+    private boolean isRecognizedImage(byte[] bytes) throws IOException {
+        try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
+            BufferedImage image = ImageIO.read(stream);
+            if (image != null) {
+                return true;
+            }
         }
-        
-        return result;
+
+        // Java's standard ImageIO runtime does not decode WebP, while Pillow in
+        // the AI service does. Verify its container signature before forwarding.
+        return bytes.length >= 12
+            && bytes[0] == 'R' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == 'F'
+            && bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P';
     }
 }

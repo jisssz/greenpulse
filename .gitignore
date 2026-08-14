@@ -48,3 +48,6 @@ venv/
 __pycache__/
 *.pyc
 
+# AI Service Datasets & Tests
+ai-service/dataset/
+ai-service/real_tests/

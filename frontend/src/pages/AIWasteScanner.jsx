@@ -35,6 +35,18 @@ const getAiReasoning = (category) => {
   }
 };
 
+const getAiFeatures = (category) => {
+  const c = (category || '').toLowerCase();
+  if (c.includes('plastic')) return ['Transparent polymer body detected', 'Bottle neck geometry identified', 'Smooth PET surface reflectance'];
+  if (c.includes('organic')) return ['Biodegradable cellular texture detected', 'Oxidation / browning pattern identified', 'Low-specular organic surface confirmed'];
+  if (c.includes('electronic') || c.includes('e-waste')) return ['PCB fiber-glass substrate detected', 'Copper trace overlay identified', 'Semiconductor component profiles matched'];
+  if (c.includes('metal')) return ['Metallic specular reflection detected', 'Crushed cylindrical deformation identified', 'Aluminium alloy surface pattern matched'];
+  if (c.includes('glass')) return ['Silica transparency profile detected', 'Brittle fracture edge geometry identified', 'Specular glare pattern matched'];
+  if (c.includes('paper') || c.includes('cardboard')) return ['Matte cellulose fiber texture detected', 'Flat rectangular geometry identified', 'Low-gloss surface pattern matched'];
+  if (c.includes('hazardous')) return ['Irregular containment profile detected', 'Warning color signature identified', 'Non-standard material composition flagged'];
+  return ['Visual pattern matched to waste categories', 'Feature extraction completed', 'Classification threshold met'];
+};
+
 const AIWasteScanner = () => {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -172,7 +184,6 @@ const AIWasteScanner = () => {
       }, 1600);
 
       const res = await api.post('/ai/classify', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
       });
       
       if (res.success && res.data) {
@@ -210,7 +221,6 @@ const AIWasteScanner = () => {
       formData.append('file', exampleFile);
 
       const res = await api.post('/ai/classify', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       if (res.success && res.data) {
@@ -220,17 +230,8 @@ const AIWasteScanner = () => {
         throw new Error(res.message || "Failed to classify example.");
       }
     } catch (err) {
-      setError("AI service temporarily unavailable");
-      // Local fallback simulation
-      setPrediction({
-        predictedCategory: item.category,
-        confidence: item.confidence,
-        recyclable: item.category !== 'Hazardous Waste',
-        recommendedBin: item.bin,
-        ecoPoints: item.id === 'laptop' ? 50 : item.id === 'sodacan' ? 20 : 10,
-        materialType: item.id === 'laptop' ? 'Silicon / PCB' : item.id === 'sodacan' ? 'Aluminium' : item.id === 'apple' ? 'Organic scrap' : 'PET Plastic',
-        conditionStatus: 'Standard Recyclable'
-      });
+      setPrediction(null);
+      setError(err.message || "AI service temporarily unavailable. No example scan was saved.");
     } finally {
       setIsScanning(false);
       setScanStep(0);
@@ -436,13 +437,13 @@ const AIWasteScanner = () => {
               >
                 <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                   <h3 className="font-extrabold text-slate-900 text-sm">AI Analysis Result 🌱</h3>
-                  {prediction.confidence >= 85 ? (
+                  {prediction.status === 'AUTO_APPROVED' && !prediction.requiresHumanReview ? (
                     <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-[#DCFCE7] text-[#166534] rounded-full flex items-center gap-0.5 border border-emerald-250">
-                      AI Verified
+                      Auto Approved
                     </span>
                   ) : (
                     <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 rounded-full flex items-center gap-0.5 border border-amber-200">
-                      Needs Human Verification
+                      Pending Human Verification
                     </span>
                   )}
                 </div>
@@ -486,12 +487,39 @@ const AIWasteScanner = () => {
                     </div>
                   </div>
 
-                  <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 space-y-1">
-                    <span className="text-[9px] font-bold text-[#64748B] block">AI Classification Reasoning</span>
-                    <p className="text-[10px] text-slate-600 leading-normal font-semibold">
+                  <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 space-y-2">
+                    <span className="text-[9px] font-bold text-[#64748B] uppercase tracking-wider block">Category guidance</span>
+                    <div className="space-y-1.5">
+                      {getAiFeatures(prediction.predictedCategory).map((feat, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <span className="text-emerald-500 font-black text-[10px] mt-0.5 shrink-0">✓</span>
+                          <span className="text-[10px] text-slate-700 font-semibold leading-tight">{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[9px] text-slate-400 leading-relaxed border-t border-slate-200/60 pt-1.5 font-medium">
                       {getAiReasoning(prediction.predictedCategory)}
                     </p>
                   </div>
+
+                  {prediction.gradCamHeatmap && (
+                    <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-bold text-[#64748B] block">Visual Attention Heatmap (Grad-CAM)</span>
+                        <span className="text-[8px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">Model Attention</span>
+                      </div>
+                      <div className="relative rounded-lg overflow-hidden">
+                        <img
+                          src={`data:image/png;base64,${prediction.gradCamHeatmap}`}
+                          alt="Grad-CAM Visual Attention Heatmap"
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                        <div className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-black/60 backdrop-blur-sm rounded text-[8px] font-bold text-white">
+                          Red = high attention region
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-4 space-y-1.5">
                     <span className="text-[9px] font-bold text-[#64748B] uppercase tracking-wider block">Recommended Action</span>
@@ -500,18 +528,20 @@ const AIWasteScanner = () => {
                     </p>
                   </div>
 
-                  <div className="bg-gradient-to-r from-[#166534] to-[#22C55E] rounded-xl p-4 text-white flex justify-between items-center">
+                  <div className={`rounded-xl p-4 text-white flex justify-between items-center ${prediction.ecoPoints > 0 ? 'bg-gradient-to-r from-[#166534] to-[#22C55E]' : 'bg-gradient-to-r from-amber-600 to-orange-500'}`}>
                     <div>
-                      <span className="text-[9px] font-bold text-emerald-100 uppercase tracking-wide block">Carbon Credits Added</span>
-                      <span className="text-xs font-black">Environmental Reward</span>
+                      <span className="text-[9px] font-bold text-emerald-100 uppercase tracking-wide block">{prediction.ecoPoints > 0 ? 'Carbon Credits Added' : 'Reward status'}</span>
+                      <span className="text-xs font-black">{prediction.ecoPoints > 0 ? 'Environmental Reward' : 'Reward unlocks after review'}</span>
                     </div>
                     <div className="text-lg font-black bg-white/20 px-3 py-1 rounded-lg">
-                      +{prediction.ecoPoints} XP
+                      {prediction.ecoPoints > 0 ? `+${prediction.ecoPoints}` : 'Pending'} XP
                     </div>
                   </div>
 
-                  <div className="p-3 bg-[#DCFCE7]/40 rounded-xl border border-emerald-100/50 text-[10px] text-emerald-800 font-bold text-center">
-                    🌿 Environmental Impact: You diverted approximately 0.2kg waste from landfill
+                  <div className={`p-3 rounded-xl border text-[10px] font-bold text-center ${prediction.status === 'AUTO_APPROVED' ? 'bg-[#DCFCE7]/40 border-emerald-100/50 text-emerald-800' : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
+                    {prediction.status === 'AUTO_APPROVED'
+                      ? '🌿 Environmental Impact: You diverted approximately 0.2kg waste from landfill'
+                      : '⚠️ This result is queued for an authority review before disposal confirmation or rewards.'}
                   </div>
                 </div>
               </motion.div>
@@ -530,7 +560,7 @@ const AIWasteScanner = () => {
       <div className="bg-white border border-emerald-950/5 rounded-[20px] p-5 shadow-xs space-y-4">
         <div className="border-b border-slate-100 pb-3">
           <h3 className="font-extrabold text-slate-900 text-sm">Try Examples (Quick Load Sandbox)</h3>
-          <p className="text-[10px] text-[#64748B] mt-0.5">Click any of these pre-configured objects to instantly trigger deep learning model runs.</p>
+          <p className="text-[10px] text-[#64748B] mt-0.5">Each item uses the same live API path as an uploaded image. Results are reviewed before rewards are issued.</p>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

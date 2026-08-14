@@ -16,7 +16,7 @@ IMG_SIZE = (224, 224)
 BATCH_SIZE = 4
 
 def main():
-    model_path = os.path.join("model", "waste_classifier.h5")
+    model_path = os.path.join("model", "waste_classifier.keras")
     if not os.path.exists(model_path):
         print(f"Error: Model not found at {model_path}. Please run train.py first.")
         return

@@ -10,10 +10,8 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
-
-# Run model training during build so h5 is ready at deployment
-RUN python train.py
+COPY main.py .
+COPY model/ model/
 
 EXPOSE 8000
 

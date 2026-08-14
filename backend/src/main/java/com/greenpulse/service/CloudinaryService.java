@@ -8,14 +8,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.annotation.PostConstruct;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class CloudinaryService {
@@ -66,34 +60,15 @@ public class CloudinaryService {
             throw new IllegalArgumentException("Cannot upload an empty file");
         }
 
-        // Check if Cloudinary is configured
-        if (this.cloudinary != null) {
-            try {
-                Map<?, ?> uploadResult = this.cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-                return (String) uploadResult.get("secure_url");
-            } catch (Exception e) {
-                System.err.println("Cloudinary upload failed, falling back to local storage: " + e.getMessage());
-            }
+        if (this.cloudinary == null) {
+            throw new IOException("Cloud storage (Cloudinary) is not configured. Set the CLOUDINARY_URL environment variable.");
         }
 
-        // Local storage fallback
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename() != null ? file.getOriginalFilename() : "file");
-        String fileExtension = "";
-        int dotIndex = originalFilename.lastIndexOf('.');
-        if (dotIndex > 0) {
-            fileExtension = originalFilename.substring(dotIndex).toLowerCase();
+        try {
+            Map<?, ?> uploadResult = this.cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            return (String) uploadResult.get("secure_url");
+        } catch (Exception e) {
+            throw new IOException("Image upload to Cloudinary failed: " + e.getMessage(), e);
         }
-
-        File dir = new File(uploadDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-
-        String newFilename = UUID.randomUUID().toString() + fileExtension;
-        Path targetLocation = Paths.get(uploadDir).toAbsolutePath().normalize().resolve(newFilename);
-
-        Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
-        return "/uploads/" + newFilename;
     }
 }

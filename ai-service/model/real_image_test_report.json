@@ -1,0 +1,190 @@
+{
+  "test_set_note": "Generated held-out demo images; not an independently sourced photographic test set.",
+  "passed": 6,
+  "failed": 1,
+  "tests": [
+    {
+      "file": "banana_peel.jpg",
+      "expected": "Organic Waste",
+      "predicted": "Organic Waste",
+      "confidence": 79.9,
+      "pass": true
+    },
+    {
+      "file": "battery.jpg",
+      "expected": "Hazardous Waste",
+      "predicted": "Hazardous Waste",
+      "confidence": 63.2,
+      "pass": true
+    },
+    {
+      "file": "circuit_board.jpg",
+      "expected": "Electronic Waste",
+      "predicted": "Hazardous Waste",
+      "confidence": 46.8,
+      "pass": false
+    },
+    {
+      "file": "glass_bottle.jpg",
+      "expected": "Glass",
+      "predicted": "Glass",
+      "confidence": 96.9,
+      "pass": true
+    },
+    {
+      "file": "paper_sheet.jpg",
+      "expected": "Paper",
+      "predicted": "Paper",
+      "confidence": 100.0,
+      "pass": true
+    },
+    {
+      "file": "plastic_bottle.jpg",
+      "expected": "Plastic",
+      "predicted": "Plastic",
+      "confidence": 99.2,
+      "pass": true
+    },
+    {
+      "file": "soda_can.jpg",
+      "expected": "Metal",
+      "predicted": "Metal",
+      "confidence": 62.8,
+      "pass": true
+    }
+  ],
+  "validation_metrics": {
+    "dataset_train_images": 3358,
+    "dataset_val_images": 712,
+    "num_classes": 7,
+    "classes": [
+      "Plastic",
+      "Paper",
+      "Glass",
+      "Metal",
+      "Organic Waste",
+      "Electronic Waste",
+      "Hazardous Waste"
+    ],
+    "accuracy": 0.8961,
+    "precision": 0.8583,
+    "recall": 0.8595,
+    "f1_score": 0.8574,
+    "per_class": [
+      {
+        "class": "Plastic",
+        "precision": 0.9011,
+        "recall": 0.8119,
+        "f1": 0.8542,
+        "support": 101
+      },
+      {
+        "class": "Paper",
+        "precision": 0.919,
+        "recall": 0.9461,
+        "f1": 0.9324,
+        "support": 204
+      },
+      {
+        "class": "Glass",
+        "precision": 0.8854,
+        "recall": 0.8095,
+        "f1": 0.8458,
+        "support": 105
+      },
+      {
+        "class": "Metal",
+        "precision": 0.8163,
+        "recall": 0.9302,
+        "f1": 0.8696,
+        "support": 86
+      },
+      {
+        "class": "Organic Waste",
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 92
+      },
+      {
+        "class": "Electronic Waste",
+        "precision": 1.0,
+        "recall": 0.9565,
+        "f1": 0.9778,
+        "support": 92
+      },
+      {
+        "class": "Hazardous Waste",
+        "precision": 0.4865,
+        "recall": 0.5625,
+        "f1": 0.5217,
+        "support": 32
+      }
+    ],
+    "confusion_matrix": [
+      [
+        82,
+        4,
+        5,
+        4,
+        0,
+        0,
+        6
+      ],
+      [
+        3,
+        193,
+        1,
+        1,
+        0,
+        0,
+        6
+      ],
+      [
+        3,
+        2,
+        85,
+        11,
+        0,
+        0,
+        4
+      ],
+      [
+        0,
+        2,
+        4,
+        80,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        92,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        88,
+        3
+      ],
+      [
+        3,
+        8,
+        1,
+        2,
+        0,
+        0,
+        18
+      ]
+    ]
+  }
+}

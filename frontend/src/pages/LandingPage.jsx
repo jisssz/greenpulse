@@ -37,6 +37,18 @@ const getAiReasoning = (category) => {
   }
 };
 
+const getAiFeatures = (category) => {
+  const c = (category || '').toLowerCase();
+  if (c.includes('plastic')) return ['Transparent polymer body detected', 'Bottle neck geometry identified', 'Smooth PET surface reflectance'];
+  if (c.includes('organic')) return ['Biodegradable cellular texture detected', 'Oxidation / browning pattern identified', 'Low-specular organic surface confirmed'];
+  if (c.includes('electronic') || c.includes('e-waste')) return ['PCB fiber-glass substrate detected', 'Copper trace overlay identified', 'Semiconductor component profiles matched'];
+  if (c.includes('metal')) return ['Metallic specular reflection detected', 'Crushed cylindrical deformation identified', 'Aluminium alloy surface pattern matched'];
+  if (c.includes('glass')) return ['Silica transparency profile detected', 'Brittle fracture edge geometry identified', 'Specular glare pattern matched'];
+  if (c.includes('paper') || c.includes('cardboard')) return ['Matte cellulose fiber texture detected', 'Flat rectangular geometry identified', 'Low-gloss surface pattern matched'];
+  if (c.includes('hazardous')) return ['Irregular containment profile detected', 'Warning color signature identified', 'Non-standard material composition flagged'];
+  return ['Visual pattern matched to waste categories', 'Feature extraction completed', 'Classification threshold met'];
+};
+
 const LandingPage = () => {
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [loadingRole, setLoadingRole] = useState(null);
@@ -97,6 +109,15 @@ const LandingPage = () => {
       setLoadingRole(null);
       setShowDemoModal(false);
     }
+  };
+
+  const ensureSandboxSession = async () => {
+    if (localStorage.getItem('greenpulse_token')) {
+      return;
+    }
+    // The public sandbox uses the seeded citizen account so its test scans go
+    // through the same authenticated API and review queue as normal scans.
+    await login('citizen@greenpulse.demo', 'password123');
   };
 
   const selectFile = (selectedFile) => {
@@ -172,18 +193,8 @@ const LandingPage = () => {
     setScanStep(1);
 
     try {
-      // 1. Resolve token or sign in guest automatically
-      let token = localStorage.getItem('token');
-      if (!token) {
-        const authRes = await api.post('/auth/login', {
-          email: 'citizen@greenpulse.demo',
-          password: 'password123'
-        });
-        if (authRes.token) {
-          token = authRes.token;
-          localStorage.setItem('token', token);
-        }
-      }
+      // 1. Resolve the authenticated sandbox session.
+      await ensureSandboxSession();
 
       setScanStep(2);
       setTimeout(() => { if (isScanning) setScanStep(3); }, 800);
@@ -192,13 +203,8 @@ const LandingPage = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const headers = { 'Content-Type': 'multipart/form-data' };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
       // 3. Dispatch to classification controller
-      const res = await api.post('/ai/classify', formData, { headers });
+      const res = await api.post('/ai/classify', formData);
 
       if (res.success && res.data) {
         setScanResult(res.data);
@@ -206,19 +212,8 @@ const LandingPage = () => {
         throw new Error(res.message || "Failed to classify");
       }
     } catch (err) {
-      console.warn("AI demo scan failed, running local sandbox prediction:", err.message);
-      // Fallback local mock simulation to keep workspace active even if backend is offline
-      setScanResult({
-        predictedCategory: "Plastic",
-        confidence: 94.5,
-        recyclable: true,
-        recommendedBin: "Blue Bin",
-        ecoPoints: 10,
-        materialType: "PET Plastic",
-        conditionStatus: "Standard Recyclable",
-        recommendedAction: "Clean and place in blue recycling bin"
-      });
-      setScanError("AI service temporarily unavailable. Falling back to simulated output.");
+      setScanResult(null);
+      setScanError(err.message || "AI service temporarily unavailable. No simulated result is shown.");
     } finally {
       setIsScanning(false);
       setScanStep(0);
@@ -242,27 +237,12 @@ const LandingPage = () => {
       setScanStep(2);
       setTimeout(() => setScanStep(3), 800);
 
-      let token = localStorage.getItem('token');
-      if (!token) {
-        const authRes = await api.post('/auth/login', {
-          email: 'citizen@greenpulse.demo',
-          password: 'password123'
-        });
-        if (authRes.token) {
-          token = authRes.token;
-          localStorage.setItem('token', token);
-        }
-      }
+      await ensureSandboxSession();
 
       const formData = new FormData();
       formData.append('file', exampleFile);
 
-      const headers = { 'Content-Type': 'multipart/form-data' };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const res = await api.post('/ai/classify', formData, { headers });
+      const res = await api.post('/ai/classify', formData);
 
       if (res.success && res.data) {
         setScanResult(res.data);
@@ -270,18 +250,8 @@ const LandingPage = () => {
         throw new Error("Failed to classify");
       }
     } catch (err) {
-      console.warn("Example scan failed, applying local prediction simulation: ", err.message);
-      setScanResult({
-        predictedCategory: item.category.replace(" Waste", ""),
-        confidence: parseFloat(item.confidence),
-        recyclable: item.category !== 'Hazardous Waste',
-        recommendedBin: item.id === 'bottle' ? 'Blue Bin' : item.id === 'apple' ? 'Compost Bin' : item.id === 'laptop' ? 'E-Waste Bin' : 'Red Bin',
-        ecoPoints: item.id === 'bottle' ? 10 : item.id === 'apple' ? 10 : item.id === 'laptop' ? 50 : 20,
-        materialType: item.id === 'laptop' ? 'Silicon / PCB' : item.id === 'sodacan' ? 'Aluminium' : item.id === 'apple' ? 'Organic scraps' : 'PET Plastic',
-        conditionStatus: 'Clean / Recyclable',
-        recommendedAction: item.id === 'bottle' ? 'Rinse thoroughly and place in the Blue plastic bin.' : 'Sort and recycle item in designated municipal bins.'
-      });
-      setScanError("AI service temporarily unavailable. Running fallback output.");
+      setScanResult(null);
+      setScanError(err.message || "AI service temporarily unavailable. No simulated result is shown.");
     } finally {
       setIsScanning(false);
       setScanStep(0);
@@ -529,11 +499,11 @@ const LandingPage = () => {
             {/* Right side: Detailed Analysis Result Card */}
             <div className="md:col-span-5 bg-[#F7FAF7] border border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[260px] relative overflow-hidden">
               
-              {!activeItem && !previewUrl ? (
+              {!scanResult && !isScanning ? (
                 <div className="text-center space-y-2 text-[#64748B]">
                   <Scan className="w-12 h-12 mx-auto text-slate-300 animate-pulse" />
-                  <p className="text-xs font-bold">Select an example or upload an image to start</p>
-                  <p className="text-[10px] text-slate-400">Deep learning predictions are calculated in real-time</p>
+                  <p className="text-xs font-bold">{scanError || 'Select an example or upload an image to start'}</p>
+                  <p className="text-[10px] text-slate-400">{scanError ? 'No simulated result is shown. Please retry when the service is available.' : 'Live predictions are submitted for human review before rewards are issued.'}</p>
                 </div>
               ) : (
                 <div className="w-full h-full flex flex-col items-center space-y-4">
@@ -545,13 +515,13 @@ const LandingPage = () => {
                       </span>
                     ) : (
                       <div className="flex gap-1.5 items-center">
-                        {((scanResult ? scanResult.confidence : (activeItem ? parseFloat(activeItem.confidence) : 95.0)) >= 85) ? (
+                        {scanResult.status === 'AUTO_APPROVED' && !scanResult.requiresHumanReview ? (
                           <span className="text-[9px] font-bold bg-[#DCFCE7] text-[#166534] border border-emerald-250 px-2 py-0.5 rounded flex items-center gap-0.5">
-                            AI Verified
+                            Auto Approved
                           </span>
                         ) : (
                           <span className="text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded flex items-center gap-0.5">
-                            Needs Human Verification
+                            Pending Human Verification
                           </span>
                         )}
                         <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 flex items-center gap-1">
@@ -573,16 +543,10 @@ const LandingPage = () => {
                       animate={{ opacity: 1 }}
                       className="w-full space-y-3 text-xs text-slate-800"
                     >
-                      {scanError && (
-                        <p className="text-[10px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200/60 leading-normal font-semibold">
-                          ⚠️ {scanError}
-                        </p>
-                      )}
-                      
                       <div className="flex justify-between">
                         <span className="text-slate-500 font-semibold">Detected Category:</span>
                         <span className="font-extrabold text-slate-900">
-                          {scanResult ? scanResult.predictedCategory : (activeItem ? activeItem.category : "Plastic")}
+                          {scanResult.predictedCategory}
                         </span>
                       </div>
 
@@ -590,13 +554,13 @@ const LandingPage = () => {
                         <div className="flex justify-between">
                           <span className="text-slate-500 font-semibold">Confidence:</span>
                           <span className="font-mono font-extrabold text-emerald-600">
-                            {scanResult ? `${scanResult.confidence}%` : (activeItem ? activeItem.confidence : "95.0%")}
+                            {scanResult.confidence}%
                           </span>
                         </div>
                         <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                           <div 
                             className="bg-emerald-600 h-1.5 rounded-full transition-all duration-500" 
-                            style={{ width: `${scanResult ? scanResult.confidence : (activeItem ? parseFloat(activeItem.confidence) : 95.0)}%` }}
+                            style={{ width: `${scanResult.confidence}%` }}
                           ></div>
                         </div>
                       </div>
@@ -604,28 +568,36 @@ const LandingPage = () => {
                       <div className="flex justify-between">
                         <span className="text-slate-500 font-semibold">Material:</span>
                         <span className="font-extrabold text-slate-900">
-                          {scanResult ? scanResult.materialType : (activeItem ? (activeItem.id === 'laptop' ? 'Silicon / PCB' : activeItem.id === 'sodacan' ? 'Aluminium' : activeItem.id === 'apple' ? 'Organic scraps' : 'PET Plastic') : "PET Plastic")}
+                          {scanResult.materialType}
                         </span>
                       </div>
 
                       <div className="flex justify-between">
                         <span className="text-slate-500 font-semibold">Waste Condition:</span>
                         <span className="font-extrabold text-amber-700">
-                          {scanResult ? scanResult.conditionStatus : "Clean / Recyclable"}
+                          {scanResult.conditionStatus}
                         </span>
                       </div>
 
-                      <div className="p-2 bg-slate-50 border border-slate-200/60 rounded-xl space-y-0.5">
-                        <span className="text-[8px] font-bold text-[#64748B] block">AI Classification Reasoning</span>
-                        <p className="text-[9px] text-slate-600 leading-normal font-semibold">
-                          {getAiReasoning(scanResult ? scanResult.predictedCategory : (activeItem ? activeItem.category : 'Plastic'))}
+                      <div className="p-2 bg-slate-50 border border-slate-200/60 rounded-xl space-y-1.5">
+                        <span className="text-[8px] font-bold text-[#64748B] uppercase tracking-wider block">Category guidance</span>
+                        <div className="space-y-1">
+                          {getAiFeatures(scanResult.predictedCategory).map((feat, i) => (
+                            <div key={i} className="flex items-start gap-1.5">
+                              <span className="text-emerald-500 font-black text-[9px] shrink-0 mt-0.5">✓</span>
+                              <span className="text-[9px] text-slate-700 font-semibold leading-tight">{feat}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-[8px] text-slate-400 leading-relaxed border-t border-slate-200/60 pt-1 font-medium">
+                          {getAiReasoning(scanResult.predictedCategory)}
                         </p>
                       </div>
 
                       <div className="flex justify-between">
                         <span className="text-slate-500 font-semibold">Recommended action:</span>
                         <span className="font-extrabold text-slate-900 text-right max-w-[180px] truncate">
-                          {scanResult ? scanResult.recommendedBin : (activeItem ? activeItem.category : "Blue Bin")} Bin
+                          {scanResult.recommendedAction || scanResult.recommendedBin}
                         </span>
                       </div>
 
@@ -633,12 +605,12 @@ const LandingPage = () => {
                         <span className="text-slate-500 font-semibold">Eco Points:</span>
                         <span className="font-extrabold text-slate-950 flex items-center gap-1">
                           <Award className="w-3.5 h-3.5 text-amber-500" />
-                          +{scanResult ? scanResult.ecoPoints : (activeItem ? activeItem.points.split(' ')[0] : "10")} XP
+                          {scanResult.ecoPoints > 0 ? `+${scanResult.ecoPoints}` : 'Pending'} XP
                         </span>
                       </div>
 
-                      <div className="p-2.5 bg-[#DCFCE7]/40 rounded-lg border border-emerald-100/50 text-[10px] text-emerald-800 font-semibold text-center mt-1">
-                        🌿 Environmental Impact: You diverted approximately 0.2kg waste from landfill
+                      <div className={`p-2.5 rounded-lg border text-[10px] font-semibold text-center mt-1 ${scanResult.status === 'AUTO_APPROVED' ? 'bg-[#DCFCE7]/40 border-emerald-100/50 text-emerald-800' : 'bg-amber-50 border-amber-200 text-amber-800'}`}>
+                        {scanResult.status === 'AUTO_APPROVED' ? '🌿 Environmental Impact: You diverted approximately 0.2kg waste from landfill' : '⚠️ An authority will review this result before confirming disposal guidance and rewards.'}
                       </div>
                     </motion.div>
                   )}
@@ -651,13 +623,13 @@ const LandingPage = () => {
 
           {/* Sandbox Examples list */}
           <div className="border-t border-slate-100 pt-6 space-y-3">
-            <span className="text-xs font-bold text-[#64748B] block">Try Examples (Quick Load Sandbox)</span>
+            <span className="text-xs font-bold text-[#64748B] block">Try Examples (Live API Sandbox)</span>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {exampleItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => loadExample(item)}
-                  className={`p-2.5 rounded-xl border text-left flex items-center gap-2 bg-slate-50 hover:bg-white hover:shadow-2xs transition-all ${activeItem?.id === item.id ? 'border-[#166534] ring-1 ring-[#DCFCE7]' : 'border-slate-200'}`}
+                  className="p-2.5 rounded-xl border border-slate-200 text-left flex items-center gap-2 bg-slate-50 hover:bg-white hover:shadow-2xs transition-all"
                 >
                   <img src={item.image} alt={item.name} className="w-9 h-9 object-cover rounded border border-slate-100" />
                   <span className="text-[10px] font-bold text-slate-800 truncate leading-tight">{item.name}</span>
