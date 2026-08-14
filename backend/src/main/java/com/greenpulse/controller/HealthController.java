@@ -17,7 +17,8 @@ public class HealthController {
         Map<String, String> status = Map.of(
             "status", "UP",
             "service", "GreenPulse API",
-            "version", "1.0.0"
+            "version", "1.0.0",
+            "aiServiceUrl", System.getenv("GREENPULSE_AI_SERVICE_URL") != null ? System.getenv("GREENPULSE_AI_SERVICE_URL") : "NOT_SET"
         );
         return ResponseEntity.ok(ApiResponse.success("Service is healthy", status));
     }
