@@ -72,6 +72,15 @@ public class WasteClassificationController {
                 "status VARCHAR(30) NOT NULL DEFAULT 'AUTO_APPROVED'," +
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ")");
+            
+            // Safely alter table to add columns supporting new visual features if they do not exist
+            try {
+                jdbcTemplate.execute("ALTER TABLE waste_predictions ADD COLUMN condition_status VARCHAR(100)");
+            } catch (Exception ignored) {}
+            try {
+                jdbcTemplate.execute("ALTER TABLE waste_predictions ADD COLUMN material_type VARCHAR(150)");
+            } catch (Exception ignored) {}
+
             System.out.println("waste_predictions table auto-initialized successfully.");
         } catch (Exception e) {
             System.err.println("Warning: Could not auto-initialize waste_predictions table: " + e.getMessage());
