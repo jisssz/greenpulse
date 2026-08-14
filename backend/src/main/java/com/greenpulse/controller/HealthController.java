@@ -17,33 +17,8 @@ public class HealthController {
         Map<String, String> status = Map.of(
             "status", "UP",
             "service", "GreenPulse API",
-            "version", "1.0.0",
-            "aiServiceUrl", System.getenv("GREENPULSE_AI_SERVICE_URL") != null ? System.getenv("GREENPULSE_AI_SERVICE_URL") : "NOT_SET"
+            "version", "1.0.0"
         );
         return ResponseEntity.ok(ApiResponse.success("Service is healthy", status));
-    }
-
-    @GetMapping("/test-ai")
-    public ResponseEntity<?> testAiConnection(@org.springframework.web.bind.annotation.RequestParam("url") String url) {
-        try {
-            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            return ResponseEntity.ok(Map.of(
-                "url", url,
-                "status", response.getStatusCode().toString(),
-                "body", response.getBody() != null ? response.getBody() : "empty"
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.ok(Map.of(
-                "url", url,
-                "error", e.getMessage() != null ? e.getMessage() : "unknown error",
-                "exceptionClass", e.getClass().getName()
-            ));
-        }
-    }
-
-    @GetMapping("/env")
-    public ResponseEntity<?> getEnvironmentVariables() {
-        return ResponseEntity.ok(System.getenv());
     }
 }

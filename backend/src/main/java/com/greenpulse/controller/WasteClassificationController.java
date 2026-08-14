@@ -155,8 +155,9 @@ public class WasteClassificationController {
                 }
             } catch (RestClientException e) {
                 System.err.println("FastAPI AI microservice unavailable: " + e.getMessage());
+                e.printStackTrace();
                 return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(ApiResponse.error("AI service is temporarily unavailable. No scan was saved; please try again shortly."));
+                    .body(ApiResponse.error("AI service is temporarily unavailable. No scan was saved; please try again shortly. (" + e.getMessage() + ")"));
             }
 
             // Extract prediction attributes

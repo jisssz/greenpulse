@@ -4,6 +4,10 @@ import json
 import base64
 import numpy as np
 import tensorflow as tf
+# Optimize TensorFlow for Render Free Tier (512MB RAM limit) to prevent OOM crashes
+tf.config.threading.set_intra_op_parallelism_threads(1)
+tf.config.threading.set_inter_op_parallelism_threads(1)
+
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
@@ -12,7 +16,12 @@ app = FastAPI(title="GreenPulse AI Environmental Intelligence Service")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://frontend-nine-woad-g8xvq6ys3s.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost:8080"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
