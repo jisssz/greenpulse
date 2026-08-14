@@ -33,9 +33,10 @@ public class HealthController {
                 "body", response.getBody() != null ? response.getBody() : "empty"
             ));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of(
+            return ResponseEntity.ok(Map.of(
                 "url", url,
-                "error", e.getMessage() != null ? e.getMessage() : "unknown error"
+                "error", e.getMessage() != null ? e.getMessage() : "unknown error",
+                "exceptionClass", e.getClass().getName()
             ));
         }
     }
