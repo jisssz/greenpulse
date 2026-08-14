@@ -41,4 +41,9 @@ public class HealthController {
             ));
         }
     }
+
+    @GetMapping("/env")
+    public ResponseEntity<?> getEnvironmentVariables() {
+        return ResponseEntity.ok(System.getenv());
+    }
 }
