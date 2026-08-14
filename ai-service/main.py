@@ -250,10 +250,10 @@ def health_check():
         "status": "UP",
         "modelLoaded": model is not None,
         "model": "MobileNetV2",
-        "accuracy": model_accuracy,
+        "validationAccuracy": model_accuracy,
+        "independentQaAccuracy": real_image_qa_pass_rate,
         "gradCamEnabled": grad_cam_model is not None,
         "modelQualityStatus": model_quality_status,
-        "realImageQaPassRate": real_image_qa_pass_rate,
     }
 
 
