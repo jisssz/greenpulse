@@ -16,7 +16,7 @@ CLASSES    = ["Plastic", "Paper", "Glass", "Metal", "Organic Waste", "Electronic
 EXPECTED = {
     "plastic_bottle": "Plastic",
     "soda_can":       "Metal",
-    "banana_peel":    "Organic Waste",
+    "apple_core":     "Organic Waste",
     "circuit_board":  "Electronic Waste",
     "paper_sheet":    "Paper",
     "glass_bottle":   "Glass",
