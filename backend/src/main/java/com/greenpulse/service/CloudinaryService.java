@@ -34,6 +34,16 @@ public class CloudinaryService {
         String cloudinaryUrl = System.getenv("CLOUDINARY_URL");
         if (StringUtils.hasText(cloudinaryUrl)) {
             try {
+                // Log masked URL to safely check format in production logs
+                String masked = cloudinaryUrl;
+                if (cloudinaryUrl.startsWith("CLOUDINARY_URL=")) {
+                    masked = "CLOUDINARY_URL=" + cloudinaryUrl.substring(15).replaceAll("(?<=cloudinary://[^:]+:)[^@]+", "******");
+                } else if (cloudinaryUrl.contains("cloudinary://")) {
+                    masked = cloudinaryUrl.replaceAll("(?<=cloudinary://[^:]+:)[^@]+", "******");
+                } else {
+                    masked = "[INVALID SCHEME - length: " + cloudinaryUrl.length() + "]";
+                }
+                System.out.println("Initializing Cloudinary with: " + masked);
                 this.cloudinary = new Cloudinary(cloudinaryUrl);
                 System.out.println("Cloudinary initialized successfully using CLOUDINARY_URL env variable.");
                 return;
