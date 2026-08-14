@@ -1,4 +1,8 @@
 import os
+# Force CPU-only mode to prevent loading heavy CUDA libraries and save 150MB+ RAM
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
 import io
 import json
 import base64
